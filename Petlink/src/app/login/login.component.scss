@@ -1,0 +1,64 @@
+.login-page {
+    position: relative;
+    height: 100vh;
+    background: url('/assets/images/frame_login.svg') no-repeat center center;
+    background-size: cover;
+
+    .overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .login-card {
+        position: relative;
+        background: rgba(255, 255, 255, 0.85);
+        border: none;
+        border-radius: 1rem;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            box-shadow: none;
+        }
+
+        .btn-signin {
+            background-color: #ffc49b;
+            border: none;
+            color: #333;
+            font-weight: 600;
+            padding: 0.75rem 0;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: darken(#ffc49b, 10%);
+            }
+        }
+
+        .google-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            color: #333;
+            font-weight: 500;
+
+            &:hover {
+                background: white;
+            }
+        }
+
+        .register-btn {
+            background-color: #006353;
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: darken(#006353, 10%);
+            }
+        }
+    }
+}

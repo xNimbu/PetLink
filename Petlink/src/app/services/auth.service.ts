@@ -1,23 +1,47 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { enviroment } from '../../enviroment/enviroment';
+import { firstValueFrom, Observable } from 'rxjs';
+import { environment } from '../../enviroment/environment';
+import { Auth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = enviroment.apiURL; // Cambia esto por tu URL real
+  private idToken: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private auth: Auth,
+    private http: HttpClient
+  ) { }
 
-  // Método para registrar un usuario
-  register(userData: { email: string; password: string; nombre: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/crear_usuario`, userData);
+  /** Login con email/pwd y almacena token */
+  async loginWithEmail(email: string, password: string): Promise<string> {
+    const cred: UserCredential = await signInWithEmailAndPassword(this.auth, email, password);
+    this.idToken = await cred.user.getIdToken();
+    return this.idToken!;
   }
 
-  // Puedes tener login aquí también si quieres
-  login(email: string, password: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/protegido`, { params: { email, password } });
+  /** Login con Google y almacena token */
+  async loginWithGoogle(): Promise<string> {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(this.auth, provider);
+    this.idToken = await result.user.getIdToken();
+    return this.idToken!;
+  }
+
+  /** Llama a tu endpoint protegido en Django */
+  async getProtectedData(): Promise<any> {
+    if (!this.idToken) {
+      throw new Error('No estás autenticado');
+    }
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${this.idToken}`
+    });
+    // firstValueFrom convierte el Observable en Promise
+    return firstValueFrom(this.http.get<any>(
+      `${environment.backendUrl}/api/protegido/`,
+      { headers }
+    ));
   }
 }
