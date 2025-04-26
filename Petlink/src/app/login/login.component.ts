@@ -1,50 +1,52 @@
 import { Component, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-declare const google: any;
-declare const window: any;
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements AfterViewInit {
-  loginForm: FormGroup;
+export class LoginComponent {
+  email = '';
+  password = '';
+  token: string | null = null;
+  protectedData: any = null;
 
-  constructor(private fb: FormBuilder) {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
-    });
-  }
+  constructor(private authService: AuthService, private router: Router, private toastr: ToastrService) { }
 
-  ngAfterViewInit() {
-    window.handleCredentialResponse = (response: any) => {
-      console.log('Token JWT de Google:', response.credential);
-      // Aquí puedes validar el token o enviarlo a tu backend
-    };
-
-    google.accounts.id.initialize({
-      client_id: 'TU_CLIENT_ID_AQUI', // <-- Reemplaza por tu Client ID
-      callback: window.handleCredentialResponse
-    });
-
-    google.accounts.id.renderButton(
-      document.getElementById("google-button"),
-      { theme: "outline", size: "large" }
-    );
-  }
-
-  onSubmit() {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-      console.log('Email:', email);
-      console.log('Password:', password);
-      // Aquí haces la petición al backend o Firebase
+  async onLoginEmail() {
+    try {
+      this.token = await this.authService.loginWithEmail(this.email, this.password);
+      this.toastr.success('¡Login exitoso!', 'Bienvenido');
+    } catch (err: any) {
+      this.toastr.error(err.message || 'Error al iniciar sesión', 'Falló Login');
     }
+  }
+
+  async onLoginGoogle() {
+    try {
+      this.token = await this.authService.loginWithGoogle();
+      this.toastr.success('¡Login con Google exitoso!', 'Bienvenido');
+    } catch (err: any) {
+      this.toastr.error(err.message || 'Error en Google Auth', 'Falló Login');
+    }
+  }
+
+  async onGetProtected() {
+    try {
+      this.protectedData = await this.authService.getProtectedData();
+    } catch (err: any) {
+      this.toastr.error(err.message || 'Error en Servicio', 'protegido');
+    }
+  }
+
+  onRegister() {
+    this.router.navigate(['/register']);
   }
 }
