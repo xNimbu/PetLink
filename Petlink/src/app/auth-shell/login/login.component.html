@@ -1,0 +1,73 @@
+<div class="login-page position-relative vh-100">
+  <!-- overlay semitransparente -->
+  <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 1;">
+  </div>
+
+  <div class="container h-100 d-flex justify-content-center align-items-center position-relative" style="z-index: 2;">
+    <div class="row gx-0 w-100">
+
+      <!-- Imagen a la izquierda -->
+      <div class="col-md-6 d-none d-md-flex justify-content-center align-items-center">
+        <img src="/assets/images/logo_text.svg" alt="Ilustración login" class="img-fluid" />
+      </div>
+
+      <!-- Card de login -->
+      <div class="col-12 col-md-6 d-flex justify-content-center align-items-center">
+        <div class="card bg-white bg-opacity-75 border-0 shadow-lg rounded-3 p-4 text-center w-100"
+          style="max-width: 400px;">
+
+          <h2 class="mb-4">Tienes cuenta?</h2>
+
+          <form [formGroup]="loginForm" (ngSubmit)="onLoginEmail()">
+            <div class="mb-3">
+              <input formControlName="email" type="email" placeholder="Correo" class="form-control rounded-pill"
+                [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" />
+              <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                class="invalid-feedback text-start">
+                Ingresa un correo válido.
+              </div>
+            </div>
+
+            <div class="mb-3 position-relative">
+              <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="Contraseña"
+                class="form-control rounded-pill"
+                [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" />
+              <button type="button"
+                class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                (click)="togglePasswordVisibility()" aria-label="Mostrar contraseña">
+                <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
+              <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                class="invalid-feedback text-start">
+                La contraseña es obligatoria.
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill w-100 mb-3" [disabled]="loading">
+              {{ loading ? 'Ingresando...' : 'Iniciar sesión' }}
+            </button>
+          </form>
+
+          <div class="d-flex justify-content-between align-items-center mb-3 small">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="remember" />
+              <label class="form-check-label" for="remember">Recordar</label>
+            </div>
+            <a routerLink="/forgot">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <div class="text-muted mb-2">― O inicia sesión con Google ―</div>
+          <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-outline-light rounded-pill px-4" (click)="onLoginGoogle()" [disabled]="loading">
+              <i class="bi bi-google me-2"></i>Google
+            </button>
+            <button class="btn btn-success rounded-pill px-4" (click)="onRegister()">
+              Registrar
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

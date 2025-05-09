@@ -34,10 +34,14 @@
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "node_modules/ngx-toastr/toastr.css",
               "src/styles.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "node_modules/ngx-toastr/toastr.js"
+            ],
             "server": "src/main.server.ts",
             "prerender": true,
             "ssr": {
