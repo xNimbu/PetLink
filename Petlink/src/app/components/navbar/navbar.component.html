@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <!-- Logo -->
     <button type="button" class="navbar-brand p-0 bg-transparent border-0">
-      <img src="/assets/images/petlink_logo.svg" alt="PetLink Logo" height="40">
+      <img src="/assets/images/petlink_logo.svg" (click)="openHome()" alt="PetLink Logo" height="40">
     </button>
 
     <!-- Search (centrado) -->
@@ -24,7 +24,7 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">
+        <a class="nav-link" (click)="openProfile()">
           <i class="fas fa-user fa-lg"></i>
         </a>
       </li>
