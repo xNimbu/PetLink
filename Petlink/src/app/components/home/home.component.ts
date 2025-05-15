@@ -5,12 +5,6 @@ import { AddPostComponent } from "./add-post/add-post.component";
 import { PostsComponent } from "./posts/posts.component";
 import { ChatsComponent } from "./chats/chats.component";
 
-interface Message {
-  username: string;
-  avatar: string;
-  unreadCount: number;
-}
-
 @Component({
   selector: 'app-home',
   standalone: true,
