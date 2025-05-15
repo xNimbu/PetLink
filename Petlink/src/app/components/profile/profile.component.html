@@ -1,0 +1,66 @@
+<!-- <p>profile works!</p> -->
+<div class="profile-page position-relative vh-100"
+    style="background: url('/assets/images/frame_login.svg') no-repeat center center; background-size: cover;">
+    <!-- overlay -->
+    <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 1;"></div>
+
+    <div class="container py-4 position-relative" style="z-index: 2;">
+        <div class="card mx-custom shadow-lg p-4 rounded-4 bg-white bg-opacity-75">
+            <div class="mx-custom">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex align-items-center">
+                        <img [src]="user.photoURL || 'default-user.png'" class="rounded-circle me-3" width="80"
+                            height="80" />
+                        <div>
+                            <h5 class="mb-0">{{ user.fullName }}</h5>
+                            <p class="text-muted">{{ '@' + user.username }}</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" (click)="openModal()">Editar perfil</button>
+                </div>
+
+                <div class="mb-4">
+                    <div *ngFor="let field of profileFields"
+                        class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ field.label }}</strong><br />
+                            <span class="text-muted">{{ field.value }}</span>
+                        </div>
+                        <!-- <button class="btn btn-outline-success btn-sm">Editar</button> -->
+                        <!-- ^ el button de arriba aparece en la parte derecha de cada campo de v-->
+                        <!-- nombre, correo, telefono, etc.-->
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="text-center mb-3">Mascotas</h5>
+
+            <div *ngFor="let pet of pets" class="card mb-3 p-3 rounded-4">
+                <div class="d-flex align-items-center">
+                    <img [src]="pet.photoURL || 'default-pet.png'" class="rounded-circle me-3" width="60" height="60" />
+                    <div class="w-100">
+                        <div class="row">
+                            <div class="col-6 col-md-3 mb-2">
+                                <strong>Nombre Mascota:</strong><br />
+                                {{ pet.name }}
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <strong>Raza:</strong><br />
+                                {{ pet.breed }}
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <strong>Edad:</strong><br />
+                                {{ pet.age + ' años' }}
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <strong>Tipo:</strong><br />
+                                {{ pet.type }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+<!-- <p>edit works!</p> -->
+<div class="modal-header">
+  <h5 class="modal-title">Editar perfil</h5>
+  <button type="button" class="btn-close" aria-label="Cerrar" (click)="cancel()"></button>
+</div>
+
+<div class="modal-body">
+  <!-- Campos no editables -->
+  <div class="mb-3">
+    <label>Usuario</label>
+    <input type="text" class="form-control" [value]="userData?.username" disabled>
+  </div>
+
+  <!-- Formulario editable -->
+  <form [formGroup]="form">
+    <div class="mb-3">
+      <label>Nombre completo</label>
+      <input type="text" class="form-control" formControlName="fullName">
+    </div>
+    <div class="mb-3">
+      <label>Correo</label>
+      <input type="email" class="form-control" formControlName="email">
+    </div>
+    <div class="mb-3">
+      <label>Teléfono</label>
+      <input type="text" class="form-control" formControlName="phone">
+    </div>
+    <div class="mb-3">
+      <label>Tipo de usuario</label>
+      <input type="text" class="form-control" formControlName="role">
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
+  <button class="btn btn-primary" (click)="save()">Guardar</button>
+</div>

@@ -1,23 +1,46 @@
-.login-page {
+.register-page {
     position: relative;
     height: 100vh;
-    background: url('/assets/images/frame_login.svg') no-repeat center center;
+    // background: url('/assets/images/frame_login.svg') no-repeat center center;
     background-size: cover;
 
     .overlay {
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.3);
     }
 
-    .login-card {
+    .container {
         position: relative;
-        background: rgba(255, 255, 255, 0.85);
+        z-index: 1;
+    }
+
+    .row {
+        height: 100%;
+    }
+
+    .image-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .register-image {
+        max-width: 100%;
+        max-height: 80%;
+    }
+
+    .register-card {
+        background: rgba(255, 255, 255, 0.9);
         border: none;
         border-radius: 1rem;
         max-width: 400px;
         width: 100%;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+        transform: translateX(100%);
+        animation: slideIn 0.5s ease-out forwards;
 
         .form-control {
             background: rgba(255, 255, 255, 0.9);
@@ -26,15 +49,15 @@
         }
 
         .btn-signin {
-            background-color: #ffc49b;
+            background-color: #006353;
             border: none;
-            color: #333;
+            color: white;
             font-weight: 600;
             padding: 0.75rem 0;
             transition: background-color 0.2s;
 
             &:hover {
-                background-color: darken(#ffc49b, 10%);
+                background-color: #005240;
             }
         }
 
@@ -49,16 +72,25 @@
             }
         }
 
-        .register-btn {
+        .login-btn {
             background-color: #006353;
             border: none;
             color: white;
             font-weight: 600;
-            transition: background-color 0.2s;
 
             &:hover {
-                background-color: darken(#006353, 10%);
+                background-color: #005240;
             }
         }
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
     }
 }
