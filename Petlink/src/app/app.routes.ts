@@ -33,6 +33,12 @@ export const routes: Routes = [
     loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent),
     canActivate: [AuthGuard]
   },
+  // Rutas de perfil
+  {
+    path: 'profile',
+    loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent),
+    canActivate: [AuthGuard]
+  },
   // Catch-all
   { path: '**', redirectTo: '' }
 ];
