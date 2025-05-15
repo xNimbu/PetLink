@@ -1,0 +1,17 @@
+:host {
+    
+  .navbar {
+    background-color: #1F763B !important;
+    .input-group-text,
+    .form-control {
+      /* Bordes redondeados para darle forma de "pill" */
+      border-radius: 20px !important;
+    }
+    .input-group-text {
+      border-right: none;
+    }
+    .form-control {
+      border-left: none;
+    }
+  }
+}

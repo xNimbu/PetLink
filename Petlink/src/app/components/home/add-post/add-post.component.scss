@@ -1,0 +1,48 @@
+$new-post-border: #3b82f6;      // azul del mockup
+$new-post-btn-bg: #e5e5e5;      // gris claro
+$new-post-btn-hover: #d4d4d4;   // hover gris
+
+.new-post-card {
+  width: 300px;                 // ajústalo a tu gusto
+  border: 2px solid $new-post-border;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  padding: 0.5rem 1rem;
+
+  &__title {
+    text-align: center;
+    font-weight: 600;
+    margin: 0.75rem 0;
+  }
+
+  &__divider {
+    height: 1px;
+    border: none;
+    background: rgba(0, 0, 0, 0.1);
+    margin: 0.25rem 0 1rem;
+  }
+
+  &__body {
+    padding-bottom: 0.75rem;
+  }
+
+  &__action {
+    background: $new-post-btn-bg;
+    color: #333;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: background 0.2s;
+    width: 100%;
+
+    i {
+      font-size: 1.2rem;
+    }
+
+    &:hover {
+      background: $new-post-btn-hover;
+    }
+  }
+}
