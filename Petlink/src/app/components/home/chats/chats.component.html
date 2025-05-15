@@ -1,0 +1,86 @@
+<!-- Sidebar de chats -->
+<div *ngIf="showChat" class="my-4">
+  <div class="card">
+    <div class="card-header">Mensajes</div>
+    <ul class="list-group list-group-flush">
+      <li
+        *ngFor="let msg of messages"
+        class="list-group-item d-flex align-items-center"
+        (click)="openChat(msg)"
+        style="cursor: pointer"
+      >
+        <img
+          [src]="msg.avatar"
+          class="rounded-circle me-2"
+          width="30"
+          height="30"
+        />
+        <div>
+          <strong>{{ msg.username }}</strong
+          ><br />
+          <small class="text-muted"
+            >{{ msg.unreadCount }} mensajes nuevos</small
+          >
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Mini-ventana de chat -->
+<div
+  *ngIf="selectedChat"
+  class="chat-window card shadow"
+  style="
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    width: 300px;
+    z-index: 1050;
+  "
+>
+  <div
+    class="card-header d-flex justify-content-between align-items-center p-2"
+  >
+    <span>{{ selectedChat.username }}</span>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Cerrar"
+      (click)="closeChat()"
+    ></button>
+  </div>
+  <div class="card-body chat-body p-2" style="height: 200px; overflow-y: auto">
+    <div *ngFor="let m of chatConversations[selectedChat.username]">
+      <div
+        [ngClass]="{
+          'd-flex justify-content-end': m.sender === 'me',
+          'd-flex justify-content-start': m.sender !== 'me'
+        }"
+      >
+        <div
+          class="p-1 mb-1"
+          [ngStyle]="{
+            'background-color': m.sender === 'me' ? '#DCF8C6' : '#F1F0F0',
+            'border-radius': '8px',
+            'max-width': '80%'
+          }"
+        >
+          {{ m.text }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer p-2">
+    <div class="input-group input-group-sm">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Escribe..."
+        [(ngModel)]="newMessageText"
+        (keyup.enter)="sendMessage()"
+      />
+      <button class="btn btn-primary" (click)="sendMessage()">Enviar</button>
+    </div>
+  </div>
+</div>

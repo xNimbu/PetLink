@@ -1,12 +1,23 @@
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { AddPostComponent } from "./add-post/add-post.component";
+import { PostsComponent } from "./posts/posts.component";
+import { ChatsComponent } from "./chats/chats.component";
+
+interface Message {
+  username: string;
+  avatar: string;
+  unreadCount: number;
+}
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, FormsModule, AddPostComponent, PostsComponent, ChatsComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
-
+export class HomeComponent  {
+  
 }
