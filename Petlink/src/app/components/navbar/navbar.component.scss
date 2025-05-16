@@ -1,17 +1,36 @@
 :host {
-    
   .navbar {
     background-color: #1F763B !important;
-    .input-group-text,
-    .form-control {
-      /* Bordes redondeados para darle forma de "pill" */
+    .input-group-text, .form-control {
       border-radius: 20px !important;
     }
-    .input-group-text {
-      border-right: none;
-    }
-    .form-control {
-      border-left: none;
-    }
+    .input-group-text { border-right: none; }
+    .form-control { border-left: none; }
   }
+}
+
+.notification-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 300px;
+  z-index: 2000;
+  border-radius: 0 0 4px 4px;
+  background-color: white;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Notificaciones no leídas */
+.notification-menu .list-group-item.unread {
+  background-color: #d0ebff;
+}
+
+/* Notificaciones leídas */
+.notification-menu .list-group-item:not(.unread) {
+  background-color: #f8f9fa;
+}
+
+.notification-menu .list-group-item {
+  transition: background-color 0.2s ease-in-out;
 }
