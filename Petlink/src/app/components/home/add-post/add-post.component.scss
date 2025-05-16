@@ -1,12 +1,12 @@
-$new-post-border: #3b82f6;      // azul del mockup
-$new-post-btn-bg: #e5e5e5;      // gris claro
+$new-post-border: #eee3e3;      // azul del mockup
+$new-post-btn-bg: #eeeded;      // gris claro
 $new-post-btn-hover: #d4d4d4;   // hover gris
 
 .new-post-card {
-  width: 300px;                 // ajústalo a tu gusto
+  width: 320px;                 // ajústalo a tu gusto
   border: 2px solid $new-post-border;
   border-radius: 8px;
-  background: #fff;
+  background: #ffffff;
   overflow: hidden;
   padding: 0.5rem 1rem;
 

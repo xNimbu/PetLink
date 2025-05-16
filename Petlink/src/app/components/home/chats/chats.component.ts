@@ -20,11 +20,11 @@ export class ChatsComponent implements OnInit {
   showChat = true;
 
   messages: Message[] = [
-    { username: 'ilusm',  avatar: 'assets/avatars/ilusm.jpg',  unreadCount: 2 },
-    { username: 'juanito',avatar: 'assets/avatars/juanito.jpg',unreadCount: 1 },
-    { username: 'maría',  avatar: 'assets/avatars/maria.jpg',  unreadCount: 3 },
-    { username: 'carlos', avatar: 'assets/avatars/carlos.jpg', unreadCount: 0 },
-    { username: 'ana',    avatar: 'assets/avatars/ana.jpg',    unreadCount: 5 },
+    { username: 'ilusm',  avatar: '/assets/images/blacktest.jpg',  unreadCount: 2 },
+    { username: 'juanito',avatar: '/assets/images/blacktest.jpg',unreadCount: 1 },
+    { username: 'maría',  avatar: '/assets/images/blacktest.jpg',  unreadCount: 3 },
+    { username: 'carlos', avatar: '/assets/images/blacktest.jpg', unreadCount: 0 },
+    { username: 'ana',    avatar: '/assets/images/blacktest.jpg',    unreadCount: 5 },
   ];
 
   selectedChat: Message | null = null;
