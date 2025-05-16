@@ -3,6 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { EditComponent } from './edit/edit.component';
 import { AuthService } from '../../services/auth/auth.service';
+import { ProfileService } from '../../services/profile/profile.service';
+import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -12,7 +14,7 @@ import { AuthService } from '../../services/auth/auth.service';
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
-  constructor(private modalService:NgbModal, private authService: AuthService) {}
+  constructor(private modalService: NgbModal, private authService: AuthService, private profileService: ProfileService,) { }
   user = {
     fullName: 'Luis Illanes',
     username: 'xnimbu',
@@ -47,19 +49,28 @@ export class ProfileComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Aquí puedes conectar con Firebase si deseas cargar los datos reales
+    this.profileService.getProfile()
+      .pipe(
+        catchError(err => {
+          console.error('Error al cargar perfil:', err);
+          return of(null); // para que no se rompa el stream
+        })
+      )
+      .subscribe(profile => {
+        console.log('🚀 Perfil cargado:', profile);
+      });
   }
 
-  openModal(){
+  openModal() {
     const modalRef = this.modalService.open(EditComponent, { size: 'lg' });
     modalRef.componentInstance.userData = { ...this.user }; // pasar los datos del usuario al modal
 
     modalRef.result.then((result) => {
       if (result) {
-        this.user = { 
+        this.user = {
           ...this.user,
           ...result
-        }; 
+        };
         this.profileFields = [
           { label: 'Nombre completo', value: this.user.fullName },
           { label: 'Correo electrónico', value: this.user.email },
@@ -67,14 +78,11 @@ export class ProfileComponent implements OnInit {
           { label: 'Tipo de usuario', value: this.user.role },
         ];
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   logout() {
-
     this.authService.logout();
-
-    // Redirigir al login (ajusta la ruta según tu app)
     window.location.href = '/login';
   }
 
