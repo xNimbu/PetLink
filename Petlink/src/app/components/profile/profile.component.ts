@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { EditComponent } from './edit/edit.component';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-profile',
@@ -11,7 +12,7 @@ import { EditComponent } from './edit/edit.component';
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
-  constructor(private modalService:NgbModal) {}
+  constructor(private modalService:NgbModal, private authService: AuthService) {}
   user = {
     fullName: 'Luis Illanes',
     username: 'xnimbu',
@@ -67,6 +68,14 @@ export class ProfileComponent implements OnInit {
         ];
       }
     }).catch(() => {});
+  }
+
+  logout() {
+
+    this.authService.logout();
+
+    // Redirigir al login (ajusta la ruta según tu app)
+    window.location.href = '/login';
   }
 
 }

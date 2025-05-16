@@ -1,18 +1,28 @@
 // src/app/services/auth.service.ts
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Auth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from '@angular/fire/auth';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../enviroment/environment';
+import { environment } from '../../../enviroments/environment';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private idToken: string | null = null;
+  private readonly STORAGE_KEY = 'auth_token';
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
     private auth: Auth,
     private http: HttpClient
-  ) { }
+  ) {
+    if (isPlatformBrowser(this.platformId)) {
+      const token = localStorage.getItem(this.STORAGE_KEY);
+      if (token) {
+        this.idToken = token;
+      }
+    }
+  }
 
   private buildHeaders(includeAuth = false): HttpHeaders {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
@@ -22,21 +32,69 @@ export class AuthService {
     }
     return headers;
   }
+
   private httpOptions(includeAuth = false) {
     return { headers: this.buildHeaders(includeAuth) };
   }
 
+  private persistToken(token: string) {
+    this.idToken = token;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.STORAGE_KEY, token);
+    }
+  }
+
   async loginWithEmail(email: string, password: string): Promise<string> {
     const cred: UserCredential = await signInWithEmailAndPassword(this.auth, email, password);
-    this.idToken = await cred.user.getIdToken();
-    return this.idToken!;
+    const token = await cred.user.getIdToken();
+    this.persistToken(token)
+    return token;
   }
 
   async loginWithGoogle(): Promise<string> {
+    // 1️⃣ Autenticación con Firebase
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(this.auth, provider);
-    this.idToken = await result.user.getIdToken();
-    return this.idToken!;
+
+    // 2️⃣ Obtener y persistir el token
+    const token = await result.user.getIdToken();
+    this.persistToken(token);
+
+    // 3️⃣ Construir perfil inicial
+    const perfil = {
+      fullName: result.user.displayName || '',
+      username: result.user.email?.split('@')[0] || '',
+      email: result.user.email || '',
+      phone: '',
+      role: '',
+      photoURL: result.user.photoURL || ''
+    };
+
+    // 4️⃣ Intentar crear/actualizar perfil, pero SIN bloquear el login
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${environment.backendUrl}/profile/`,
+          perfil,
+          this.httpOptions(true)
+        )
+      );
+    } catch (e) {
+      console.warn('No se pudo crear el perfil automáticamente:', e);
+      // Opcional: mostrar un Toastr o similar, pero NO throw
+    }
+
+    // 5️⃣ Devolver siempre el token para que el componente continúe
+    return token;
+  }
+
+
+  logout(): void {
+    this.idToken = null;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.STORAGE_KEY);
+    }
+    this.auth.signOut();
   }
 
   /** Llama a tu endpoint protegido: usa environment.backendUrl tal cual */
@@ -59,7 +117,6 @@ export class AuthService {
       )
     );
   }
-
 
   /** Exponer el idToken */
   get token(): string | null {
