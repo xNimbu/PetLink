@@ -1,4 +1,5 @@
-<nav class="navbar navbar-expand-lg" [ngClass]="{'bg-white': !showNotifications, 'bg-success': showNotifications}" style="padding: .5rem 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+<nav class="navbar navbar-expand-lg" [ngClass]="{'bg-white': !showNotifications, 'bg-success': showNotifications}"
+  style="padding: .5rem 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
   <div class="container-fluid">
     <!-- Logo -->
     <button type="button" class="navbar-brand p-0 bg-transparent border-0" (click)="openHome()">
@@ -16,31 +17,40 @@
     <ul class="navbar-nav flex-row align-items-center">
       <!-- Campana de notificaciones -->
       <li class="nav-item position-relative me-3">
-        <button class="btn nav-link position-relative p-0" (click)="toggleNotifications($event)">
+        <button class="btn nav-link p-0" (click)="toggleNotifications($event)">
           <i class="fas fa-bell fa-lg"></i>
-          <span *ngIf="unreadCount && !showNotifications" class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
+          <span *ngIf="unreadCount"
+            class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
             {{ unreadCount }}
           </span>
         </button>
-        <div *ngIf="showNotifications" class="card shadow p-0 notification-menu">
-          <div class="card-header fw-bold">Notificaciones</div>
-          <div *ngIf="notifications.length; else noNotif" class="list-group list-group-flush">
-            <a *ngFor="let n of notifications" [routerLink]="n.link || null"
-               class="list-group-item d-flex align-items-start"
-               [class.unread]="!n.read"
-               (click)="markAsRead(n, $event)">
-              <img [src]="n.avatar" alt="avatar" class="rounded-circle me-2" width="30" height="30" />
+
+        <!-- floater absoluto -->
+        <div *ngIf="showNotifications" class="card shadow p-0 d-flex flex-column notification-menu"
+          style="width: 300px; max-height: 240px;">
+          <div class="card-header flex-shrink-0 fw-bold">
+            Notificaciones
+          </div>
+
+          <div class="list-group list-group-flush flex-grow-1 overflow-auto">
+            <a *ngFor="let n of notifications" [routerLink]="n.link||null"
+              class="list-group-item d-flex align-items-start" [ngClass]="{'unread': !n.read, 'read': n.read}"
+              (click)="markAsRead(n, $event)">
+              <img [src]="n.avatar" class="rounded-circle me-2" width="30" height="30" />
               <div class="small">
                 <strong>{{ n.username }}</strong>
                 <div class="text-truncate">{{ n.message }}</div>
               </div>
             </a>
+            <div *ngIf="!notifications.length" class="list-group-item text-center text-muted py-3">
+              No hay notificaciones
+            </div>
           </div>
-          <ng-template #noNotif>
-            <div class="list-group-item text-center text-muted py-3">No hay notificaciones</div>
-          </ng-template>
-          <div class="text-center py-2">
-            <a class="list-group-item list-group-item-action" routerLink="/notificaciones">Ver todas</a>
+
+          <div class="card-footer flex-shrink-0 text-center py-2">
+            <a class="list-group-item list-group-item-action m-0" routerLink="/notificaciones">
+              Ver todas
+            </a>
           </div>
         </div>
       </li>
