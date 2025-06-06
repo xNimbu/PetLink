@@ -3,6 +3,7 @@ export const environment = {
     firebaseConfig: {
         apiKey: "AIzaSyBd0_Ahe1MUl8kb9lXaQterrraQi1lbIvk",
         authDomain: "petlink-d54eb.firebaseapp.com",
+        databaseURL: "https://petlink-d54eb-default-rtdb.firebaseio.com",
         projectId: "petlink-d54eb",
         storageBucket: "petlink-d54eb.firebasestorage.app",
         messagingSenderId: "560042626252",

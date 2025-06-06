@@ -1,6 +1,6 @@
-// src/environments/environment.prod.ts
+// src/environments/environment.example.ts
 export const environment = {
-  production: true,
+  production: false,
   firebaseConfig: {
     apiKey:            '',
     authDomain:        '',
