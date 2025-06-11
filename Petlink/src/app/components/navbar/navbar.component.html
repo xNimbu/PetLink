@@ -56,7 +56,15 @@
       </li>
       <!-- Perfil -->
       <li class="nav-item">
-        <a class="nav-link" (click)="openProfile()"><i class="fas fa-user fa-lg"></i></a>
+        <a class="nav-link" routerLink="/profilefeed" style="cursor: pointer;">
+          <i class="fas fa-user fa-lg"></i>
+        </a>
+      </li>
+      <!-- Configuración del perfil -->
+      <li class="nav-item">
+        <a class="nav-link" (click)="openProfile()" style="cursor: pointer;">
+          <i class="fas fa-cog fa-lg"></i>
+        </a>
       </li>
     </ul>
   </div>

@@ -1,0 +1,149 @@
+<!-- <p>profilefeed works!</p> --> 
+<!-- Fondo general -->
+<div class="profilefeed bg-light">
+<!--<div class="profilefeed bg-light min-vh-100 pb-5">-->
+
+  <!-- Portada -->
+  <div class="position-relative">
+    <img src="assets/images/dog-paws.png" class="w-100" style="height: 250px; object-fit: cover;" />
+  </div>
+
+  <!-- Contenedor principal -->
+  <div class="container position-relative" style="margin-top: -75px;">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+
+      <!-- Avatar y datos -->
+      <div class="d-flex align-items-center">
+        <!-- Avatar -->
+        <div class="me-4">
+          <img [src]="user.photoURL || 'assets/images/default-user.png'" 
+               class="rounded-circle border border-white border-3" 
+               style="width: 150px; height: 150px; object-fit: cover;" />
+        </div>
+
+        <!-- Info de usuario -->
+        <div>
+          <h2 class="mb-1">{{ user.fullName }}</h2>
+          <!-- <p class="text-muted mb-0">@{{ user.username }}</p> -->
+        </div>
+      </div>
+
+      <!-- Menú de navegación -->
+      <div class="mt-4 border-top pt-3 d-flex gap-3">
+        <a href="#" class="text-decoration-none text-dark fw-semibold">Publicaciones</a>
+        <a href="#" class="text-decoration-none text-dark fw-semibold">Mascotas</a>
+        <a href="#" class="text-decoration-none text-dark fw-semibold">Información</a>
+        <a href="#" class="text-decoration-none text-dark fw-semibold">Amigos</a>
+      </div>
+
+    </div>
+    <!-- Sección de publicaciones u otro contenido -->
+  </div>
+</div>
+<!-- Sección de contenido -->
+<div class="container mt-4">
+  <div class="row">
+    
+    <!-- Columna izquierda -->
+    <div class="col-md-4">
+      
+      <!-- Presentación -->
+      <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
+        <h5 class="fw-bold">Presentación</h5>
+        <p class="mb-1">¡Hola! Soy {{ user.fullName }}, amante de los animales y parte del equipo de desarrollo de PetLink 🐾</p>
+        <ul class="list-unstyled small text-secondary">
+          <li><i class="bi bi-building me-2"></i>Trabaja en PetLink</li>
+          <li><i class="bi bi-mortarboard me-2"></i>Estudió en Duoc UC</li>
+          <li><i class="bi bi-geo-alt me-2"></i>Vive en San Joaquín</li>
+        </ul>
+      </div>
+
+      <!-- Fotos -->
+      <div class="bg-white rounded-3 shadow-sm p-3">
+        <h5 class="fw-bold">Fotos</h5>
+        <div class="row g-2">
+          <div class="col-4" *ngFor="let photo of petPhotos.slice(0, 9)">
+            <div class="photo-box">
+                <img [src]="photo" class="img-fluid object-fit-cover w-100 h-100 rounded" />
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-2">
+          <a href="#" class="text-decoration-none small">Ver todas las fotos</a>
+        </div>
+      </div>
+
+      <!-- Amigos -->
+      <div class="bg-white rounded-3 shadow-sm p-3 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="fw-bold mb-0">Amigos</h5>
+        </div>
+        <p class="text-muted small">{{ friends.length }} amigos</p>
+
+        <div class="row g-2">
+          <div class="col-4" *ngFor="let friend of friends.slice(0, 9)">
+            <div class="friend-card text-center">
+              <img [src]="friend.photoURL" class="img-fluid rounded" style="aspect-ratio: 1 / 1; object-fit: cover;" />
+              <p class="small mt-1 mb-0 text-truncate">{{ friend.name }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-2">
+          <a href="#" class="text-decoration-none small">Ver todos los amigos</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="col-md-8">
+      
+      <!-- ¿Qué estás pensando? -->
+      <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
+        <input type="text" class="form-control rounded-pill mb-2" placeholder="¿Qué estás pensando, {{ user.fullName }}?">
+        <div class="d-flex gap-3 mt-2 small text-muted">
+          <span><i class="bi bi-camera-video me-1"></i>Video en vivo</span>
+          <span><i class="bi bi-image me-1"></i>Foto/video</span>
+          <span><i class="bi bi-emoji-smile me-1"></i>Sentimiento</span>
+        </div>
+      </div>
+
+      <!-- Navegación de pestañas -->
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+          <a class="nav-link active">Publicaciones</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link">Información</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link">Amigos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link">Fotos</a>
+        </li>
+      </ul>
+
+      <!-- Publicaciones  -->
+        <div class="bg-white rounded-3 shadow-sm p-3 mb-3" *ngFor="let post of posts">
+            <div class="d-flex align-items-center mb-2">
+            <img [src]="user.photoURL" class="rounded-circle me-2" width="40" height="40" />
+            <div>
+                <strong>{{ user.fullName }}</strong><br />
+                <small class="text-muted">{{ post.time }}</small>
+            </div>
+            </div>
+            <p>{{ post.content }}</p>
+            <div *ngIf="post.image" class="post-image-square mt-3">
+                <img [src]="post.image" class="rounded" />
+            </div>
+            <div class="d-flex justify-content-between mt-3 text-muted small">
+            <span><i class="bi bi-hand-thumbs-up me-1"></i>Me gusta</span>
+            <span><i class="bi bi-chat me-1"></i>Comentar</span>
+            <span><i class="bi bi-share me-1"></i>Compartir</span>
+            </div>
+        </div>
+
+    </div>
+  </div>
+</div>
