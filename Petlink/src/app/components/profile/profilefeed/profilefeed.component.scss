@@ -9,19 +9,6 @@
   border-radius: 50%;
 }
 
-.photo-box {
-  width: 100%;
-  aspect-ratio: 1 / 1; // mantiene cuadrado
-  overflow: hidden;
-  border-radius: 0.5rem;
-
-  img {
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-  }
-}
-
 .post-image-square {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -39,11 +26,19 @@
   }
 }
 
-.friend-card img {
-  width: 100%;
-  border-radius: 0.5rem;
+.sticky-col {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto !important;
 }
 
-.friend-card p {
-  font-size: 0.85rem;
+.green {
+  background-color: #E6F4EC; // puedes cambiarlo por $verde-suave si usas variables
+  border: none;
+  color: #1f1f1f; // asegúrate de que el texto sea legible
+}
+
+.profilefeed {
+  background-color: #E6F4EC; // verde claro armonioso con las cards
 }

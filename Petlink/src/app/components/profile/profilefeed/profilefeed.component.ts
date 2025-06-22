@@ -26,11 +26,12 @@ import {
   Profile,
   Pet
 } from '../../../services/profile/profile.service';
+import { DetailProfileComponent } from "../detail-profile/detail-profile.component";
 
 @Component({
   selector: 'app-profilefeed',
   standalone: true,
-  imports: [CommonModule, NgbModule],
+  imports: [CommonModule, NgbModule, DetailProfileComponent],
   templateUrl: './profilefeed.component.html',
   styleUrl: './profilefeed.component.scss'
 })
