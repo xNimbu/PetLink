@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Pet {
@@ -20,8 +20,23 @@ export interface Profile {
   role: string;
   photoURL: string;
   pets: Pet[];
+  posts: Post[];
+  friends: Friends[];
 }
 
+export interface Post {
+  timestamp: string;
+  content: string;
+  photoURL?: string;
+  id: string;
+}
+
+export interface Friends {
+  uid: string;
+  username: string;
+  avatar: string;
+  addedAt: string;
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -37,7 +52,14 @@ export class ProfileService {
   }
 
   updateProfile(data: Partial<Profile>): Observable<any> {
-    return this.http.post(`${this.base}/`, data);
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    return this.http.put(`${this.base}/`, data, { headers });
+  }
+
+  updateProfileForm(formData: FormData): Observable<any> {
+    return this.http.put(`${this.base}/`, formData);
   }
 
   listPets(): Observable<{ pets: Pet[] }> {
