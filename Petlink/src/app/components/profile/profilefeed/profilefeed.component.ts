@@ -1,20 +1,3 @@
-// import { Component } from '@angular/core';
-//
-// @Component({
-//   selector: 'app-profilefeed',
-//   standalone: true,
-//   imports: [],
-//   templateUrl: './profilefeed.component.html',
-//   styleUrl: './profilefeed.component.scss'
-// })
-// export class ProfilefeedComponent {
-//   user = {
-//     fullName: 'Luis Illanes',
-//     username: 'xNimbu',
-//     photoURL: 'assets/images/default-user.png'
-//   };
-// }
-
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -115,12 +98,4 @@ export class ProfilefeedComponent implements OnInit {
     window.location.href = '/login';
   }
 
-//  editBio(){
-//    const modalRef = this.modalService.open(EditBioModalComponent);
-//    modalRef.componentInstance.bio = this.user.bio;
-//
-//    modalRef.result.then(result => {
-//      if (result) this.user.bio = result;
-//    }).catch(() => {});
-//  }
 }
