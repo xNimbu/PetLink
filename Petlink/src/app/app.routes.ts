@@ -5,6 +5,9 @@ import { RedirectGuard } from './guards/redirect.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { LoginComponent } from './auth-shell/login/login.component';
 import { RegisterComponent } from './auth-shell/register/register.component';
+import { UserProfileComponent } from './components/profile/user-profile/user-profile.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { ProfilefeedComponent } from './components/profile/profilefeed/profilefeed.component';
 
 export const routes: Routes = [
   {
@@ -38,12 +41,13 @@ export const routes: Routes = [
     loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [AuthGuard]
   },
-  // Rutas de perfil
   {
     path: 'profilefeed',
     loadComponent: () => import('./components/profile/profilefeed/profilefeed.component').then(m => m.ProfilefeedComponent),
     canActivate: [AuthGuard]
-  }, 
+  },
+  { path: 'profile/:uid', component: UserProfileComponent },
+
   // Catch-all
   { path: '**', redirectTo: '' }
 ];

@@ -1,7 +1,10 @@
 // src/app/chats/chats.component.ts
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatEvent, ChatService } from '../../../services/chat/chat.service';
+import { Subscription } from 'rxjs';
+import { Friend, FriendService } from '../../../services/friends/friend.service';
 
 interface Message {
   username: string;
@@ -18,62 +21,89 @@ interface Message {
 })
 export class ChatsComponent implements OnInit {
   showChat = true;
-
-  messages: Message[] = [
-    { username: 'ilusm',  avatar: '/assets/images/blacktest.jpg',  unreadCount: 2 },
-    { username: 'juanito',avatar: '/assets/images/blacktest.jpg',unreadCount: 1 },
-    { username: 'maría',  avatar: '/assets/images/blacktest.jpg',  unreadCount: 3 },
-    { username: 'carlos', avatar: '/assets/images/blacktest.jpg', unreadCount: 0 },
-    { username: 'ana',    avatar: '/assets/images/blacktest.jpg',    unreadCount: 5 },
-  ];
-
-  selectedChat: Message | null = null;
+  messages: Friend[] = [];
+  selectedChat: Friend | null = null;
   newMessageText = '';
+  chatConversations: Record<string, Array<{ sender: 'me' | 'them'; text: string }>> = {};
+  private socketSub?: Subscription;
+  private friendsSub?: Subscription;
 
-  chatConversations: {
-    [username: string]: Array<{ sender: 'me' | 'them'; text: string }>;
-  } = {};
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private friendService: FriendService,
+    private chatService: ChatService
+  ) { }
 
   ngOnInit(): void {
-    this.messages.forEach(m => {
-      this.chatConversations[m.username] = [];
-    });
-  }
-
-  toggleChat(): void {
-    this.showChat = !this.showChat;
-    if (!this.showChat) {
-      this.closeChat();
+    if (isPlatformBrowser(this.platformId)) {
+      this.friendsSub = this.friendService.list().subscribe({
+        next: resp => {
+          // 1) Rellena la lista de amigos
+          this.messages = resp.friends;
+          // 2) Inicializa un array vacío de mensajes para cada amigo
+          this.messages.forEach(f => {
+            this.chatConversations[f.uid] = [];
+          });
+        },
+        error: err => console.error('Error cargando amigos', err)
+      });
     }
   }
 
-  openChat(user: Message): void {
-    this.selectedChat = user;
+  ngOnDestroy(): void {
+    this.friendsSub?.unsubscribe();
+    this.socketSub?.unsubscribe();
+    this.chatService.disconnect();
+  }
+
+  openChat(friend: Friend): void {
+    this.selectedChat = friend;
+    this.socketSub?.unsubscribe();
+    this.chatService.disconnect();
+
+    // Asegúrate de que existe el array
+    if (!this.chatConversations[friend.uid]) {
+      this.chatConversations[friend.uid] = [];
+    }
+
+    // Conéctate a la sala usando el uid del amigo
+    this.socketSub = this.chatService.connect(friend.uid)
+      .subscribe({
+        next: evt => this.handleEvent(evt, friend.uid),
+        error: err => console.error(err)
+      });
   }
 
   closeChat(): void {
     this.selectedChat = null;
     this.newMessageText = '';
+    this.socketSub?.unsubscribe();
+    this.chatService.disconnect();
   }
 
   sendMessage(): void {
     if (!this.selectedChat || !this.newMessageText.trim()) return;
 
-    // push user message
-    this.chatConversations[this.selectedChat.username].push({
+    // Envía al canal
+    this.chatService.sendMessage(this.newMessageText.trim());
+
+    // Guarda localmente
+    this.chatConversations[this.selectedChat.uid].push({
       sender: 'me',
       text: this.newMessageText.trim()
     });
-
     this.newMessageText = '';
+  }
 
-    // simulate reply
-    setTimeout(() => {
-      if (!this.selectedChat) return;
-      this.chatConversations[this.selectedChat.username].push({
-        sender: 'them',
-        text: '¡Recibido! 😊'
-      });
-    }, 1000);
+  private handleEvent(evt: ChatEvent, room: string) {
+    if (evt.type === 'auth.success') {
+      return;
+    }
+    // history o chat.message
+    this.chatConversations[room].push({
+      sender: evt.type === 'history' ? 'them'
+        : (evt.user === 'me' ? 'me' : 'them'),
+      text: evt.message
+    });
   }
 }

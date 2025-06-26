@@ -9,7 +9,14 @@
     <!-- Search -->
     <div class="mx-auto w-50">
       <div class="input-group">
-        <input type="text" class="form-control border-start-0 rounded-end" placeholder="Buscar..." />
+        <input type="text" class="form-control border-start-0 rounded-end" [(ngModel)]="query" placeholder="Buscar..." />
+        <ul *ngIf="results.length">
+          <li *ngFor="let u of results">
+            <a [routerLink]="['/profile', u.uid]">
+              <img [src]="u.avatar" width="24" height="24"> {{ u.username }}
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
 

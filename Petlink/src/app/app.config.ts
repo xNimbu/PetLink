@@ -14,6 +14,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideAuth(() => getAuth()),
     provideHttpClient(
       withFetch(),
       withInterceptorsFromDi()
@@ -26,8 +28,6 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideClientHydration(),
-    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
-    provideAuth(() => getAuth()),
     importProvidersFrom(
       BrowserAnimationsModule,
       ToastrModule.forRoot({
