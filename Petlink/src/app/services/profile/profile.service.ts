@@ -1,7 +1,9 @@
+// src/app/services/profile/profile.service.ts
 import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AuthService } from '../auth/auth.service';
 
 export interface Pet {
   id: string;
@@ -10,6 +12,20 @@ export interface Pet {
   age: number;
   type: string;
   photoURL: string;
+}
+
+export interface Post {
+  timestamp: string;
+  content: string;
+  photoURL?: string;
+  id: string;
+}
+
+export interface Friend {
+  uid: string;
+  username: string;
+  avatar: string;
+  addedAt: string;
 }
 
 export interface Profile {
@@ -21,22 +37,9 @@ export interface Profile {
   photoURL: string;
   pets: Pet[];
   posts: Post[];
-  friends: Friends[];
+  friends: Friend[];
 }
 
-export interface Post {
-  timestamp: string;
-  content: string;
-  photoURL?: string;
-  id: string;
-}
-
-export interface Friends {
-  uid: string;
-  username: string;
-  avatar: string;
-  addedAt: string;
-}
 @Injectable({
   providedIn: 'root'
 })
@@ -44,37 +47,58 @@ export class ProfileService {
   private base = `${environment.backendUrl}/profile`;
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private auth: AuthService
   ) { }
 
+  /** Obtiene el perfil completo */
   getProfile(): Observable<Profile> {
-    return this.http.get<Profile>(`${this.base}/`);
+    return this.http.get<Profile>(
+      `${this.base}/`,
+      this.auth.getAuthHeaders()        // solo Authorization
+    );
   }
 
-  updateProfile(data: Partial<Profile>): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-    return this.http.put(`${this.base}/`, data, { headers });
-  }
-
+  /** POST con FormData para incluir foto */
   updateProfileForm(formData: FormData): Observable<any> {
-    return this.http.put(`${this.base}/`, formData);
+    return this.http.post(
+      `${this.base}/`,
+      formData,
+      this.auth.formOptions()
+    );
   }
 
+  /** Listar mascotas */
   listPets(): Observable<{ pets: Pet[] }> {
-    return this.http.get<{ pets: Pet[] }>(`${this.base}/pets/`);
+    return this.http.get<{ pets: Pet[] }>(
+      `${this.base}/pets/`,
+      this.auth.getAuthHeaders()
+    );
   }
 
-  addPet(pet: Omit<Pet, 'id'>): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>(`${this.base}/pets/`, pet);
+  /** Agregar nueva mascota con FormData si incluye foto */
+  addPet(formData: FormData): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(
+      `${this.base}/pets/`,
+      formData,
+      this.auth.formOptions()
+    );
   }
 
-  updatePet(id: string, changes: Partial<Pet>): Observable<any> {
-    return this.http.put(`${this.base}/pets/${id}/`, changes);
+  /** Editar mascota existente */
+  updatePet(id: string, formData: FormData): Observable<any> {
+    return this.http.put(
+      `${this.base}/pets/${id}/`,
+      formData,
+      this.auth.formOptions()
+    );
   }
 
+  /** Eliminar mascota */
   deletePet(id: string): Observable<any> {
-    return this.http.delete(`${this.base}/pets/${id}/`);
+    return this.http.delete(
+      `${this.base}/pets/${id}/`,
+      this.auth.getAuthHeaders()
+    );
   }
 }

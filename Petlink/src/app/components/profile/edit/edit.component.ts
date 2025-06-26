@@ -1,3 +1,4 @@
+// src/app/components/profile/edit/edit.component.ts
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -26,6 +27,7 @@ export class EditComponent implements OnInit {
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
+      username: [''],
       photoURL: ['']
     });
   }
@@ -36,6 +38,7 @@ export class EditComponent implements OnInit {
         fullName: this.userData.fullName,
         email: this.userData.email,
         phone: this.userData.phone,
+        username: this.userData.username,
       });
       this.previewUrl = this.userData.photoURL;
     }
@@ -46,34 +49,47 @@ export class EditComponent implements OnInit {
     if (!file) return;
     this.selectedFile = file;
     const reader = new FileReader();
-    reader.onload = e => (this.previewUrl = e.target?.result as string);
+    reader.onload = e => this.previewUrl = e.target?.result as string;
     reader.readAsDataURL(file);
   }
 
   save(): void {
     if (this.form.invalid) return;
-
     this.uploading = true;
+
+    // Siempre uso FormData + POST
     const formData = new FormData();
-    formData.append('fullName', this.form.get('fullName')!.value);
-    formData.append('email', this.form.get('email')!.value);
-    formData.append('phone', this.form.get('phone')!.value);
-    // anexamos el file si existe
-    if (this.selectedFile) {
-      formData.append('photo', this.selectedFile, this.selectedFile.name);
+    formData.append('fullName', this.form.value.fullName);
+    formData.append('email', this.form.value.email);
+    formData.append('phone', this.form.value.phone);
+    formData.append('username', this.form.value.username);
+
+    // Si no cambiaste la foto, envía la URL actual
+    if (!this.selectedFile) {
+      formData.append('photoURL', this.previewUrl || this.userData.photoURL);
+    } else {
+      // Si cambiaste, envía el archivo
+      formData.append('image', this.selectedFile, this.selectedFile.name);
     }
 
-    this.profileService.updateProfileForm(formData).subscribe({
-      next: (updatedProfile) => {
-        this.uploading = false;
-        // Devuelvo al componente padre los datos actualizados
-        this.activeModal.close(updatedProfile);
-      },
-      error: (err) => {
-        console.error('Error guardando perfil', err);
-        this.uploading = false;
-      }
-    });
+    this.profileService.updateProfileForm(formData)
+      .subscribe({
+        next: () => {
+          this.uploading = false;
+          // Devuelvo al padre el perfil actualizado
+          this.activeModal.close({
+            fullName: this.form.value.fullName,
+            email: this.form.value.email,
+            phone: this.form.value.phone,
+            username: this.form.value.username,
+            photoURL: this.previewUrl
+          });
+        },
+        error: err => {
+          console.error('Error al actualizar perfil', err);
+          this.uploading = false;
+        }
+      });
   }
 
   cancel(): void {

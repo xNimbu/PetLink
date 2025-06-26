@@ -7,54 +7,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
   selector: 'app-add-edit-pet-modal',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <form [formGroup]="form" (ngSubmit)="save()">
-      <div class="modal-header">
-        <h4 class="modal-title">{{ mode === 'add' ? 'Agregar Mascota' : 'Editar Mascota' }}</h4>
-      </div>
-
-      <div class="modal-body">
-
-        <!-- Foto con pre-visualización -->
-        <div class="text-center mb-3">
-          <img [src]="previewUrl || form.value.photoURL || 'assets/images/default-pet.png'"
-               class="rounded mb-2"
-               style="width:120px;height:120px;object-fit:cover;">
-          <div>
-            <input type="file" accept="image/*" #file hidden (change)="onFileSelected($event)">
-            <button type="button" class="btn btn-outline-primary btn-sm"
-                    (click)="file.click()">Cambiar foto</button>
-          </div>
-        </div>
-
-        <!-- Resto de campos -->
-        <div class="form-group mb-2">
-          <label>Nombre Mascota</label>
-          <input class="form-control" formControlName="name" />
-        </div>
-        <div class="form-group mb-2">
-          <label>Raza</label>
-          <input class="form-control" formControlName="breed" />
-        </div>
-        <div class="form-group mb-2">
-          <label>Edad</label>
-          <input type="number" class="form-control" formControlName="age" />
-        </div>
-        <div class="form-group mb-2">
-          <label>Tipo</label>
-          <input class="form-control" formControlName="type" />
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancel()">Cancelar</button>
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || uploading">
-          {{ uploading ? 'Subiendo…' : (mode === 'add' ? 'Agregar' : 'Guardar') }}
-        </button>
-      </div>
-    </form>
-  `
+  templateUrl: './add-edit-pet.component.html',
+  styleUrl: './add-edit-pet.component.scss',
 })
 export class AddEditPetModalComponent {
   @Input() pet: any = null;

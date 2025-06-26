@@ -127,4 +127,34 @@ export class AuthService {
   get isLoggedIn(): boolean {
     return !!this.idToken;
   }
+
+  public getAuthHeaders(): { headers: HttpHeaders } {
+    if (this.idToken) {
+      return {
+        headers: new HttpHeaders({
+          'Authorization': `Bearer ${this.idToken}`
+        })
+      };
+    } else {
+      console.warn('Intentando usar auth headers sin token');
+      return { headers: new HttpHeaders() };
+    }
+  }
+
+  public jsonOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.idToken}`
+      })
+    };
+  }
+
+  public formOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${this.idToken}`
+      })
+    };
+  }
 }

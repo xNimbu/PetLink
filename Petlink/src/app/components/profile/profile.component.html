@@ -1,6 +1,7 @@
 <!-- <p>profile works!</p> -->
 <div class="profile-page position-relative vh-100"
-     style="background: url('/assets/images/frame_login.svg') no-repeat center center; background-size: cover;">
+  style="background: url('/assets/images/frame_login.svg') no-repeat center center; background-size: cover;">
+  @if (user) {
   <!-- overlay -->
   <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 1;"></div>
 
@@ -12,9 +13,8 @@
 
         <!-- Avatar + datos -->
         <div class="d-flex align-items-start flex-grow-1">
-          <img [src]="user.photoURL || 'default-user.png'"
-               class="rounded-circle me-3"
-               width="80" height="80" />
+          <img [src]="user.photoURL" class="rounded-circle me-3"
+            style="width: 110px; height:110px; object-fit: cover;" />
 
           <div class="profile-info">
             <h5 class="mb-1 text-uppercase fw-bold">{{ user.fullName }}</h5>
@@ -39,8 +39,8 @@
 
         <!-- Botones -->
         <div class="ms-md-4 mt-3 mt-md-0 d-flex flex-row gap-2">
-          <button class="btn btn-success" (click)="openModal()">Editar perfil</button>
-          <button class="btn btn-danger"  (click)="logout()">Cerrar Sesión</button>
+          <button class="btn btn-success" (click)="openEditProfileModal()">Editar perfil</button>
+          <button class="btn btn-danger" (click)="logout()">Cerrar Sesión</button>
         </div>
       </div>
 
@@ -53,10 +53,12 @@
         </button>
       </div>
 
-      <div *ngFor="let pet of pets" class="card mb-3 p-3 rounded-4 position-relative">
+      @for (pet of pets; track $index) {
+
+      <div class="card mb-3 p-3 rounded-4 position-relative">
         <div class="d-flex align-items-center">
           <img [src]="pet.photoURL || 'default-pet.png'" class="rounded-circle me-3"
-               width="60" height="60" />
+            style="width: 60px; height:60px; object-fit: cover;" />
           <div class="w-100">
             <div class="row">
               <div class="col-6 col-md-3 mb-2">
@@ -86,7 +88,11 @@
           </div>
         </div>
       </div>
+      }
 
     </div>
   </div>
+  }@else {
+  <p class="text-center mt-5">Cargando perfil…</p>
+  }
 </div>

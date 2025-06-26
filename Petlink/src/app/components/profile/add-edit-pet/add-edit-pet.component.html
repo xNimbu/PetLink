@@ -1,63 +1,44 @@
-<div class="modal-header">
-  <h5 class="modal-title">
-    {{ mode === 'edit' ? 'Editar Mascota' : 'Agregar Mascota' }}
-  </h5>
-  <button type="button" class="btn-close" aria-label="Cerrar" (click)="cancel()"></button>
-</div>
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="modal-header">
+    <h4 class="modal-title">{{ mode === 'add' ? 'Agregar Mascota' : 'Editar Mascota' }}</h4>
+  </div>
 
-<div class="modal-body">
-  <form [formGroup]="form">
+  <div class="modal-body">
 
-    <!-- Foto -->
-    <div class="mb-3 text-center">
-      <img [src]="previewUrl || form.value.photoURL || 'assets/images/default-pet.png'"
-           class="rounded circle mb-2"
-           style="width: 110px; height:110px; object-fit: cover;" />
-
+    <!-- Foto con pre-visualización -->
+    <div class="text-center mb-3">
+      <img [src]="previewUrl || form.value.photoURL || 'assets/images/default-pet.png'" class="rounded mb-2"
+        style="width:120px;height:120px;object-fit:cover;">
       <div>
-        <input type="file" accept="image/*" #fileInput hidden (change)="onFileSelected($event)">
-        <button type="button" class="btn btn-outline-primary btn-sm"
-                (click)="fileInput.click()">Cambiar foto</button>
+        <input type="file" accept="image/*" #file hidden (change)="onFileSelected($event)">
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="file.click()">Cambiar foto</button>
       </div>
     </div>
 
-    <!-- Nombre -->
-    <div class="mb-3">
-      <label class="form-label">Nombre</label>
-      <input type="text" formControlName="name" class="form-control" />
+    <!-- Resto de campos -->
+    <div class="form-group mb-2">
+      <label>Nombre Mascota</label>
+      <input class="form-control" formControlName="name" />
+    </div>
+    <div class="form-group mb-2">
+      <label>Raza</label>
+      <input class="form-control" formControlName="breed" />
+    </div>
+    <div class="form-group mb-2">
+      <label>Edad</label>
+      <input type="number" class="form-control" formControlName="age" />
+    </div>
+    <div class="form-group mb-2">
+      <label>Tipo</label>
+      <input class="form-control" formControlName="type" />
     </div>
 
-    <!-- Raza -->
-    <div class="mb-3">
-      <label class="form-label">Raza</label>
-      <input type="text" formControlName="breed" class="form-control" />
-    </div>
+  </div>
 
-    <!-- Edad -->
-    <div class="mb-3">
-      <label class="form-label">Edad</label>
-      <input type="number" formControlName="age" class="form-control" />
-    </div>
-
-    <!-- Tipo -->
-    <div class="mb-3">
-      <label class="form-label">Tipo</label>
-      <select formControlName="type" class="form-select">
-        <option value="">Selecciona tipo</option>
-        <option value="Perro">Perro</option>
-        <option value="Gato">Gato</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
-
-  </form>
-</div>
-
-<div class="modal-footer">
-  <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
-  <button class="btn btn-primary"
-          [disabled]="form.invalid || uploading"
-          (click)="save()">
-    {{ mode === 'edit' ? 'Guardar cambios' : 'Agregar' }}
-  </button>
-</div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancel()">Cancelar</button>
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || uploading">
+      {{ uploading ? 'Subiendo…' : (mode === 'add' ? 'Agregar' : 'Guardar') }}
+    </button>
+  </div>
+</form>
