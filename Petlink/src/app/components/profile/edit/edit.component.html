@@ -5,34 +5,48 @@
 </div>
 
 <div class="modal-body">
+
+  <!-- FOTO DE PERFIL (nueva sección) -->
+  <div class="mb-4 text-center">
+    <!-- Imagen actual o pre-visualización -->
+    <img [src]="previewUrl || userData?.photoURL" class="rounded-circle mb-2"
+         style="width: 110px; height:110px; object-fit: cover;" />
+
+    <!-- Botón para seleccionar archivo -->
+    <div>
+      <input type="file" accept="image/*" #file hidden (change)="onFileSelected($event)">
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="file.click()">
+        Cambiar foto
+      </button>
+    </div>
+  </div>
+
   <!-- Campos no editables -->
   <div class="mb-3">
-    <label>Usuario</label>
+    <label class="form-label">Usuario</label>
     <input type="text" class="form-control" [value]="userData?.username" disabled>
   </div>
 
   <!-- Formulario editable -->
   <form [formGroup]="form">
     <div class="mb-3">
-      <label>Nombre completo</label>
+      <label class="form-label">Nombre completo</label>
       <input type="text" class="form-control" formControlName="fullName">
     </div>
     <div class="mb-3">
-      <label>Correo</label>
+      <label class="form-label">Correo</label>
       <input type="email" class="form-control" formControlName="email">
     </div>
     <div class="mb-3">
-      <label>Teléfono</label>
+      <label class="form-label">Teléfono</label>
       <input type="text" class="form-control" formControlName="phone">
-    </div>
-    <div class="mb-3">
-      <label>Tipo de usuario</label>
-      <input type="text" class="form-control" formControlName="role">
     </div>
   </form>
 </div>
 
 <div class="modal-footer">
   <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
-  <button class="btn btn-primary" (click)="save()">Guardar</button>
+  <button class="btn btn-primary" (click)="save()" [disabled]="form.invalid || uploading">
+    {{ uploading ? 'Subiendo…' : 'Guardar' }}
+  </button>
 </div>
