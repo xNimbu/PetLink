@@ -1,15 +1,115 @@
+.chat-sidebar {
+  position: sticky;
+  top: 4rem; // ajusta este valor a la altura de tu navbar
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto; // si la lista supera la altura
+  margin-top: 1rem; // separación inicial
+
+  &__title {
+    font-weight: 600;
+    color: #333;
+  }
+
+  &__item {
+    cursor: pointer;
+    transition: background-color .2s;
+
+    &.active {
+      background-color: #006353;
+      color: white;
+
+      .chat-sidebar__avatar {
+        border: 2px solid white;
+      }
+    }
+
+    &:hover:not(.active) {
+      background-color: rgba(0, 99, 83, .1);
+    }
+  }
+
+  &__avatar {
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__username {
+    font-size: .95rem;
+    font-weight: 500;
+  }
+}
+
+
 .list-group-item.active {
   background-color: #e9ecef;
 }
+
 .chat-window {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
   width: 300px;
-  z-index: 1050;
-  font-size: 0.9rem;
-}
-.chat-body {
-  height: 200px;
-  overflow-y: auto;
+  height: 400px;
+  max-height: 40vh;
+  display: flex;
+  flex-direction: column;
+
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #ffffff;
+    padding: 0.5rem;
+  }
+
+  .message {
+    display: flex;
+    margin-bottom: 0.5rem;
+
+    &--me {
+      justify-content: flex-end;
+
+      .bubble {
+        background-color: #dcf8c6;
+        border-radius: 1rem 1rem 0 1rem;
+      }
+    }
+
+    &--them {
+      justify-content: flex-start;
+
+      .bubble {
+        background-color: #f1f0f0;
+        border-radius: 1rem 1rem 1rem 0;
+      }
+    }
+
+    .bubble {
+      padding: 0.5rem 0.75rem;
+      max-width: 75%;
+      word-wrap: break-word;
+      color: #000;
+    }
+  }
+
+  .card-footer {
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+
+    .form-control {
+      border-radius: 0.25rem 0 0 0.25rem;
+    }
+
+    .btn {
+      border-radius: 0 0.25rem 0.25rem 0;
+    }
+  }
+
+  .btn-close {
+    font-size: 1rem;
+  }
 }

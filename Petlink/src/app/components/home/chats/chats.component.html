@@ -1,42 +1,50 @@
 <!-- Sidebar de chats -->
-<div *ngIf="friends.length">
-  <ul class="list-group">
-    <li *ngFor="let f of friends" class="list-group-item" (click)="openChat(f)"
-      [class.active]="selectedChat?.uid === f.uid">
-      {{ f.username }}
+<div *ngIf="friends.length" class="chat-sidebar bg-white shadow-sm p-3">
+  <!-- Título -->
+  <h5 class="chat-sidebar__title mb-3">Chats</h5>
+
+  <!-- Lista de amigos -->
+  <ul class="list-group list-group-flush">
+    <li *ngFor="let f of friends" class="list-group-item d-flex align-items-center chat-sidebar__item"
+      (click)="openChat(f)" [class.active]="selectedChat?.uid === f.uid">
+      <!-- Avatar -->
+      <img [src]="f.avatar || '/assets/images/default-avatar.png'" alt="{{ f.username }}"
+        class="rounded-circle me-2 chat-sidebar__avatar" width="36" height="36" />
+      <!-- Nombre -->
+      <span class="chat-sidebar__username">{{ f.username }}</span>
     </li>
   </ul>
 </div>
 
 <!-- Ventana de chat -->
-<div *ngIf="selectedChat" class="chat-window card shadow"
-  style="position: fixed; bottom:1rem; right:1rem; width:300px; z-index:1050;">
-  <div class="card-header d-flex justify-content-between">
-    <span>Chat con {{ selectedChat.username }}</span>
-    <button class="btn-close" (click)="closeChat()"></button>
+<div *ngIf="selectedChat" class="chat-window card shadow">
+  <!-- Header con avatar -->
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <img [src]="selectedChat.avatar || '/assets/images/default-avatar.png'" alt="{{ selectedChat.username }}"
+        class="rounded-circle me-2" width="32" height="32" />
+      <span class="fw-semibold">Chat con {{ selectedChat.username }}</span>
+    </div>
+    <button type="button" class="btn-close" (click)="closeChat()"></button>
   </div>
 
-  <div class="card-body p-2" style="height:200px; overflow-y:auto;">
-    <div *ngFor="let m of chatConversations[ getChatIdByUsername(currentUsername, selectedChat.username) ]">
-      <div [ngClass]="{
-              'd-flex justify-content-end': m.sender === 'me',
-              'd-flex justify-content-start': m.sender === 'them'
-            }">
-        <div class="p-1 mb-1" [ngStyle]="{
-                'background-color': m.sender==='me'?'#DCF8C6':'#F1F0F0',
-                'border-radius':'8px',
-                'max-width':'80%'
-              }">
-          {{ m.text }}
-        </div>
-      </div>
+  <!-- Cuerpo con scroll -->
+  <div class="card-body chat-body d-flex flex-column">
+    <div *ngFor="let m of chatConversations[getChatIdByUsername(currentUsername, selectedChat.username)]" [ngClass]="{
+        'message': true,
+        'message--me': m.sender === 'me',
+        'message--them': m.sender === 'them'
+      }">
+      <div class="bubble">{{ m.text }}</div>
     </div>
   </div>
 
-  <div class="card-footer p-2">
+  <!-- Footer con form para Enter -->
+  <form class="card-footer p-2" (ngSubmit)="sendMessage()">
     <div class="input-group input-group-sm">
-      <input class="form-control" [(ngModel)]="newMessageText" (keyup.enter)="sendMessage()" placeholder="Escribe…" />
-      <button class="btn btn-primary" (click)="sendMessage()">Enviar</button>
+      <input name="message" type="text" class="form-control" [(ngModel)]="newMessageText" placeholder="Escribe…"
+        autocomplete="off" />
+      <button class="btn btn-primary" type="submit">Enviar</button>
     </div>
-  </div>
+  </form>
 </div>
