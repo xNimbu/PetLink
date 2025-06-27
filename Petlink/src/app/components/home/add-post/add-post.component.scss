@@ -26,6 +26,15 @@ $new-post-btn-text:      #ffffff;  // texto blanco
   }
 }
 
+.form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: lab(89.23% -23.42 17.52);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(165, 255, 147, 0.25);
+}
+
+
 /* ---------- Tarjeta “Nuevo post” ---------- */
 .new-post-card {
   width: 100%;            // ocupa todo en móviles   // límite para que no sea enorme en desktop

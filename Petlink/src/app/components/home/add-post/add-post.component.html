@@ -1,51 +1,82 @@
 <!-- src/app/components/home/add-post/add-post.component.html -->
 
-<div class="new-post-card my-3 w-100">
-  <h5 class="new-post-card__title">
-    {{ showForm ? "Crear publicación" : "Nueva publicación" }}
-  </h5>
-  <hr class="new-post-card__divider" />
+<div class="bg-white rounded-3 shadow-sm p-3 mb-4 w-100">
 
-  <!-- Estado inicial -->
+  <!-- ▸ VISTA COLAPSADA ---------------------------------------------------- -->
   <ng-container *ngIf="!showForm">
-    <div class="new-post-card__body text-center">
-      <!-- Botón verde “Crear nuevo post” -->
-      <button class="btn new-post-card__action" (click)="openForm()">
-        Crear nuevo post
-      </button>
+    <input
+      type="text"
+      class="form-control rounded-pill mb-2"
+      placeholder="¿Qué estás pensando, {{ user.fullName }}?"
+      (focus)="openForm()"
+      (click)="openForm()"
+      readonly
+    />
+
+    <div class="d-flex gap-3 mt-2 small text-muted">
+      <span class="cursor-pointer d-inline-flex align-items-center" (click)="openForm()">
+        <i class="bi bi-image me-1"></i>Foto
+      </span>
     </div>
   </ng-container>
 
-  <!-- Formulario abierto -->
+  <!-- ▸ FORMULARIO EXPANDIDO ---------------------------------------------- -->
   <ng-container *ngIf="showForm">
-    <div class="new-post-card__form p-3 border rounded">
-      <!-- Textarea para contenido -->
-      <textarea
-        class="form-control mb-2"
-        rows="4"
-        placeholder="¿Qué estás pensando?"
-        [(ngModel)]="postContent"
-      ></textarea>
+    <!-- Contenido -->
+    <textarea
+      class="form-control mb-2"
+      rows="4"
+      placeholder="¿Qué estás pensando?"
+      [(ngModel)]="postContent"
+      autofocus
+    ></textarea>
 
-      <!-- Selector de fichero -->
-      <input
-        type="file"
-        class="form-control mb-2"
-        accept="image/*"
-        (change)="onFileSelected($event)"
-      />
+    <!-- Barra de acciones -->
+    <div class="d-flex align-items-center justify-content-between gap-3">
 
-      <!-- Botones -->
-      <div class="d-flex justify-content-end gap-2">
+      <!-- ● Grupo IZQUIERDO: agregar / quitar foto -->
+      <div class="d-flex align-items-center gap-2">
+        <!-- Botón-icono que abre el selector -->
+        <label
+          for="newPostImage"
+          class="btn btn-light border-0 d-inline-flex align-items-center p-2"
+          style="cursor: pointer;"
+        >
+          <span><i class="bi bi-image fs-4"></i> Foto</span>
+        </label>
+
+        <!-- Input real (oculto) -->
+        <input
+          id="newPostImage"
+          type="file"
+          accept="image/*"
+          class="d-none"
+          (change)="onFileSelected($event)"
+        />
+
+        <!-- Botón “Quitar” -->
+        <button
+          *ngIf="selectedFile"
+          class="btn btn-light border d-inline-flex align-items-center"
+          (click)="removeFile()"
+        >
+          <i class="bi bi-x-lg me-1"></i>Quitar
+        </button>
+      </div>
+
+      <!-- ● Grupo DERECHO: cancelar / publicar -->
+      <div class="d-flex align-items-center gap-2">
         <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
         <button
-          class="btn new-post-card__publish"
+          class="btn btn-success"
           [disabled]="!postContent.trim() && !selectedFile"
           (click)="submitPost()"
         >
           Publicar
         </button>
       </div>
+
     </div>
   </ng-container>
+
 </div>

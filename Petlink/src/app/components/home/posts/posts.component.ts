@@ -4,6 +4,7 @@ import { CommonModule }   from '@angular/common';
 import { FormsModule }    from '@angular/forms';
 import { ProfileService, Post, Profile } from '../../../services/profile/profile.service';
 import { AuthService }    from '../../../services/auth/auth.service';
+import { Output, EventEmitter } from '@angular/core';
 
 interface DisplayPost extends Post {
   username: string;
@@ -18,6 +19,7 @@ interface DisplayPost extends Post {
   styleUrl: './posts.component.scss'
 })
 export class PostsComponent implements OnInit {
+  @Output() postsChange = new EventEmitter<DisplayPost[]>();
 
   /* --------------------- PROPIEDADES ----------------------------------- */
   posts: DisplayPost[] = [];
@@ -57,6 +59,7 @@ export class PostsComponent implements OnInit {
     });
   }
 
+
   private loadPosts(): void {
     this.loading = true;
     this.profileService.getUserPosts().subscribe({
@@ -66,13 +69,9 @@ export class PostsComponent implements OnInit {
           username: this.user.username,
           userAvatar: this.user.photoURL
         }));
+        this.postsChange.emit(this.posts);
         this.loading = false;
       },
-      error: err => {
-        console.error('Error cargando posts', err);
-        this.errorMsg = 'No se pudieron cargar los posts.';
-        this.loading = false;
-      }
     });
   }
 
