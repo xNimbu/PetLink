@@ -1,83 +1,105 @@
-import { CommonModule } from '@angular/common';
+// src/app/components/profile/profile.component.ts
 import { Component, OnInit } from '@angular/core';
-import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { catchError, of } from 'rxjs';
 
+import { AddEditPetModalComponent } from './add-edit-pet/add-edit-pet.component';
 import { EditComponent } from './edit/edit.component';
+import { ProfileService, Profile, Pet } from '../../services/profile/profile.service';
 import { AuthService } from '../../services/auth/auth.service';
-import {
-  ProfileService,
-  Profile,    // interfaz que devuelve tu API
-  Pet         // si tu ProfileService exporta también Pet
-} from '../../services/profile/profile.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, NgbModule],
+  imports: [],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss'
+  styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
-  // 1) Declaramos propiedades vacías para rellenar desde el servicio
   user!: Profile;
-  profileFields: { label: string; value: string }[] = [];
   pets: Pet[] = [];
 
   constructor(
     private modalService: NgbModal,
-    private authService: AuthService,
     private profileService: ProfileService,
-  ) {}
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
+    if (!this.authService.isLoggedIn) {
+      window.location.href = '/login';
+      return;
+    }
+    this.loadProfile();
+  }
+
+  private loadProfile() {
     this.profileService.getProfile()
-      .pipe(
-        catchError(err => {
-          console.error('Error al cargar perfil:', err);
-          return of<Profile | null>(null);
-        })
-      )
+      .pipe(catchError(err => {
+        console.error('Error al cargar perfil:', err);
+        return of<Profile | null>(null);
+      }))
       .subscribe(profile => {
         if (!profile) return;
-
-        // 2) Asignamos directamente el objeto recibido
         this.user = profile;
-
-        // 3) Creamos el array para el template
-        this.profileFields = [
-          { label: 'Nombre completo',     value: this.user.fullName },
-          { label: 'Correo electrónico',  value: this.user.email    },
-          { label: 'Teléfono',            value: this.user.phone    },
-          { label: 'Tipo de usuario',     value: this.user.role     },
-        ];
-
-        // 4) Si tu API devuelve mascotas, las asignamos; si no, queda vacío
-        this.pets = profile.pets ?? [];
+        this.pets = profile.pets || [];
       });
   }
 
-  openModal(): void {
+  /** 1) Abrir modal de editar perfil */
+  openEditProfileModal(): void {
     const modalRef = this.modalService.open(EditComponent, { size: 'lg' });
-    // 5) Pasamos al modal una copia de los datos actuales
     modalRef.componentInstance.userData = { ...this.user };
 
     modalRef.result
-      .then(result => {
-        if (result) {
-          // 6) Actualizamos la vista si el modal devolvió cambios
-          this.user = { ...this.user, ...result };
-          this.profileFields = [
-            { label: 'Nombre completo',     value: this.user.fullName },
-            { label: 'Correo electrónico',  value: this.user.email    },
-            { label: 'Teléfono',            value: this.user.phone    },
-            { label: 'Tipo de usuario',     value: this.user.role     },
-          ];
+      .then((updatedProfile: any) => {
+        if (updatedProfile) {
+          // Sustituimos localmente los datos
+          this.user = updatedProfile;
+          // o para recargar todo:
+          // this.loadProfile();
         }
       })
-      .catch(() => {/* modal dismiss sin cambios */});
+      .catch(() => {
+        // dismissed sin cambios
+      });
   }
 
+  /** 2) Abrir modal para agregar mascota */
+  openAddPetModal(): void {
+    const modalRef = this.modalService.open(AddEditPetModalComponent);
+    modalRef.componentInstance.mode = 'add';
+
+    modalRef.result
+      .then((formData: FormData) => {
+        return this.profileService.addPet(formData).toPromise();
+      })
+      .then(() => this.loadProfile())
+      .catch(() => { /* dismiss o error silencioso */ });
+  }
+
+  /** 3) Abrir modal para editar mascota */
+  openEditPetModal(pet: Pet): void {
+    const modalRef = this.modalService.open(AddEditPetModalComponent);
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.pet = pet;
+
+    modalRef.result
+      .then((formData: FormData) => {
+        return this.profileService.updatePet(pet.id, formData).toPromise();
+      })
+      .then(() => this.loadProfile())
+      .catch(() => { /* dismiss o error silencioso */ });
+  }
+
+  /** Eliminar mascota */
+  deletePet(id: string): void {
+    if (!confirm('¿Eliminar esta mascota?')) return;
+    this.profileService.deletePet(id)
+      .subscribe(() => this.loadProfile());
+  }
+
+  /** Cerrar sesión */
   logout(): void {
     this.authService.logout();
     window.location.href = '/login';
