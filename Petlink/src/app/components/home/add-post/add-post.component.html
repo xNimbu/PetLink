@@ -1,81 +1,46 @@
-<div class="new-post-card mx-auto my-5">
+<!-- src/app/components/home/add-post/add-post.component.html -->
 
-  <!-- Título dinámico -->
+<div class="new-post-card my-3 w-100">
   <h5 class="new-post-card__title">
-    {{ showForm ? 'Crear publicación' : 'Nueva publicación' }}
+    {{ showForm ? "Crear publicación" : "Nueva publicación" }}
   </h5>
-  <hr class="new-post-card__divider">
+  <hr class="new-post-card__divider" />
 
-  <!-- ===== ESTADO INICIAL: acciones ===== -->
+  <!-- Estado inicial -->
   <ng-container *ngIf="!showForm">
-    <div class="new-post-card__body d-flex flex-column gap-3">
-
-      <!-- Botón que despliega el formulario -->
-      <button
-        class="btn new-post-card__action text-start"
-        (click)="openForm()"
-      >
-        <img
-          [src]="user.photoURL || '/assets/images/luis.png'"
-          class="rounded-circle me-2"
-          width="40"
-          height="40"
-        />
-        {{ user.fullName }}
-        <br> <p>¿Qué estás pensando?</p>
-      </button>
-
-      <!-- Otras acciones que ya tenías -->
-      <button class="btn new-post-card__action d-flex align-items-center justify-content-center">
-        <i class="fas fa-image me-2"></i>
-        Subir imagen
-      </button>
-      <button class="btn new-post-card__action">
-        Ver posts guardados
+    <div class="new-post-card__body text-center">
+      <!-- Botón verde “Crear nuevo post” -->
+      <button class="btn new-post-card__action" (click)="openForm()">
+        Crear nuevo post
       </button>
     </div>
   </ng-container>
 
-  <!-- ===== FORMULARIO ABIERTA: creación de post ===== -->
+  <!-- Formulario abierto -->
   <ng-container *ngIf="showForm">
-    <div class="new-post-card__form p-3">
-
-      <!-- Header del formulario con foto, nombre y cerrar -->
-      <div class="d-flex align-items-center mb-3">
-        <img
-          [src]="user.photoURL || 'default-user.png'"
-          class="rounded-circle me-2"
-          width="40"
-          height="40"
-        />
-        <strong>{{ user.fullName }}</strong>
-        <button
-          type="button"
-          class="btn-close ms-auto"
-          aria-label="Cerrar"
-          (click)="cancel()"
-        ></button>
-      </div>
-
-      <!-- Textarea para el contenido -->
+    <div class="new-post-card__form p-3 border rounded">
+      <!-- Textarea para contenido -->
       <textarea
-        class="form-control"
+        class="form-control mb-2"
         rows="4"
         placeholder="¿Qué estás pensando?"
         [(ngModel)]="postContent"
       ></textarea>
 
-      <!-- Botones de Cancelar / Publicar -->
-      <div class="d-flex justify-content-end mt-3">
+      <!-- Selector de fichero -->
+      <input
+        type="file"
+        class="form-control mb-2"
+        accept="image/*"
+        (change)="onFileSelected($event)"
+      />
+
+      <!-- Botones -->
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
         <button
-          class="btn btn-secondary me-2"
-          (click)="cancel()"
-        >
-          Cancelar
-        </button>
-        <button
-          class="btn btn-primary"
-          [disabled]="!postContent.trim()"
+          class="btn new-post-card__publish"
+          [disabled]="!postContent.trim() && !selectedFile"
           (click)="submitPost()"
         >
           Publicar
@@ -83,5 +48,4 @@
       </div>
     </div>
   </ng-container>
-
 </div>

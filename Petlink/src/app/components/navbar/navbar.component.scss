@@ -1,5 +1,16 @@
 :host {
   .navbar {
+
+    /* Altura de la navbar + espacio opcional */
+$navbar-h: 56px;
+$gap: 12px;
+
+.sticky-sidebar {
+  position: sticky;
+  top: $navbar-h + $gap;          // se “pega” justo debajo de la barra
+  max-height: calc(100vh - (#{$navbar-h} + $gap));
+  overflow-y: auto;               // scroll interno si la tarjeta crece mucho
+}
     background-color: #1F763B !important;
 
     .input-group-text,

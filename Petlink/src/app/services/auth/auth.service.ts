@@ -1,40 +1,65 @@
-// src/app/services/auth.service.ts
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Auth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from '@angular/fire/auth';
-import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { isPlatformBrowser } from '@angular/common';
+import { HttpClient, HttpHeaders }         from '@angular/common/http';
+import {
+  Auth,
+  authState,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  UserCredential
+} from '@angular/fire/auth';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { environment }                     from '../../../environments/environment';
+import { isPlatformBrowser }               from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private idToken: string | null = null;
   private readonly STORAGE_KEY = 'auth_token';
 
+  /** Emite true cuando ya hay un token válido (incluso tras F5) */
+  private readySubject = new BehaviorSubject<boolean>(false);
+  ready$ = this.readySubject.asObservable();
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private auth: Auth,
     private http: HttpClient
   ) {
+    // 1️⃣ Carga token de localStorage si existe
     if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem(this.STORAGE_KEY);
-      if (token) {
-        this.idToken = token;
-      }
+      if (token) this.idToken = token;
     }
+
+    // 2️⃣ Escucha authState para refrescar token y notificar ready$
+    authState(this.auth).subscribe(user => {
+      if (user) {
+        user.getIdToken().then(token => {
+          this.idToken = token;
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem(this.STORAGE_KEY, token);
+          }
+          this.readySubject.next(true);
+        });
+      } else {
+        this.idToken = null;
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.removeItem(this.STORAGE_KEY);
+        }
+        this.readySubject.next(false);
+      }
+    });
   }
 
-  private buildHeaders(includeAuth = false): HttpHeaders {
+
+
+  public httpOptions(includeAuth = false): { headers: HttpHeaders } {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (includeAuth) {
-      if (!this.idToken) throw new Error('No estás autenticado');
+    if (includeAuth && this.idToken) {
       headers = headers.set('Authorization', `Bearer ${this.idToken}`);
     }
-    return headers;
-  }
-
-  private httpOptions(includeAuth = false) {
-    return { headers: this.buildHeaders(includeAuth) };
+    return { headers };
   }
 
   private persistToken(token: string) {
@@ -126,5 +151,35 @@ export class AuthService {
   /** Saber si hay sesión iniciada */
   get isLoggedIn(): boolean {
     return !!this.idToken;
+  }
+
+  public getAuthHeaders(): { headers: HttpHeaders } {
+    if (this.idToken) {
+      return {
+        headers: new HttpHeaders({
+          'Authorization': `Bearer ${this.idToken}`
+        })
+      };
+    } else {
+      console.warn('Intentando usar auth headers sin token');
+      return { headers: new HttpHeaders() };
+    }
+  }
+
+  public jsonOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.idToken}`
+      })
+    };
+  }
+
+  public formOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${this.idToken}`
+      })
+    };
   }
 }

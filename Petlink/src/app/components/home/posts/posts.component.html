@@ -1,30 +1,97 @@
-<ng-container *ngIf="posts.length; else placeholder">
-  <div *ngFor="let post of posts" class="card mb-4">
-    <div class="card-header d-flex align-items-center">
-      <img
-        [src]="post.userAvatar"
-        class="rounded-circle me-2"
-        width="35"
-        height="35"
-      />
-      <strong>{{ post.username }}</strong>
-    </div>
-    <img [src]="post.imageUrl" class="card-img-top" />
-    <div class="card-body">
-      <div class="d-flex mb-2">
-        <button class="btn btn-link p-0 me-3"><i class="bi bi-heart"></i></button>
-        <button class="btn btn-link p-0 me-3"><i class="bi bi-chat"></i></button>
-        <button class="btn btn-link p-0 ms-auto"><i class="bi bi-bookmark"></i></button>
-      </div>
-      <p class="card-text">
-        <strong>{{ post.username }}</strong> {{ post.text }}
-      </p>
-    </div>
+<div class="container py-4">
+  <!-- Loader -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border" role="status"></div>
   </div>
-</ng-container>
 
-<ng-template #placeholder>
-  <div class="border rounded py-5 text-center text-muted">
-    No hay publicaciones aún
+  <!-- Error -->
+  <div *ngIf="!loading && errorMsg" class="alert alert-danger">
+    {{ errorMsg }}
   </div>
-</ng-template>
+
+  <!-- Lista de posts -->
+  <ng-container *ngIf="!loading && posts.length; else noPosts">
+    <div class="row">
+      <div *ngFor="let post of posts" class="col-12">
+        <div class="card post-card shadow-sm">
+          <!-- Header -->
+          <div
+            class="card-header d-flex align-items-center bg-white border-0 pb-2"
+          >
+            <img
+              [src]="post.userAvatar || '/assets/images/default-avatar.png'"
+              class="rounded-circle me-3"
+              width="40"
+              height="40"
+            />
+            <div class="flex-grow-1">
+              <h6 class="mb-0">{{ post.username }}</h6>
+              <small class="text-muted">{{
+                post.timestamp | date : "short"
+              }}</small>
+            </div>
+
+            <!-- Menú de tres puntos -->
+            <div class="dropdown">
+              <button
+                class="btn btn-link text-muted p-0"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="bi bi-three-dots fs-5"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <button
+                    class="dropdown-item text-danger"
+                    (click)="deletePost(post.id)"
+                  >
+                    <i class="bi bi-trash me-2"></i>Eliminar publicación
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Texto -->
+          <div class="px-3 pb-2">
+            <p class="mb-2 card-text">{{ post.content }}</p>
+          </div>
+
+          <!-- Imagen (opcional) -->
+          <img
+            *ngIf="post.photoURL"
+            [src]="post.photoURL"
+            class="card-img-top"
+            alt="Imagen del post"
+          />
+
+          <!-- Footer con Like -->
+          <div class="card-footer bg-white border-0 pt-0">
+            <button
+              class="btn btn-like"
+              (click)="toggleLike(post.id)"
+              [attr.aria-pressed]="isLiked(post.id)"
+            >
+              <i
+                [ngClass]="{
+                  'bi bi-heart-fill text-danger': isLiked(post.id),
+                  'bi bi-heart': !isLiked(post.id)
+                }"
+              >
+              </i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Sin posts -->
+  <ng-template #noPosts>
+    <div class="alert alert-secondary text-center my-5">
+      No hay publicaciones aún
+    </div>
+  </ng-template>
+</div>
