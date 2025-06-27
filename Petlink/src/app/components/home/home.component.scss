@@ -1,7 +1,35 @@
+.bg-custom{
+  background-color: rgba(31, 118, 59, 0.226);
+  min-height: 100vh;
+}
+
 .navbar-light .navbar-nav .nav-link {
     color: #ffffff;
   }
+
+
+  /* Altura real de la navbar fija */
+$navbar-h: 56px;
+
+/* El elemento host <app-home> actúa como contenedor de toda la página Home.
+   Así sólo esta pantalla obtiene el espacio extra
+   y tus otros módulos/rutas (login, etc.) quedan intactos. */
+:host {
+  display: block;
+  padding-top: $navbar-h;  /* deja hueco para la navbar fija */
+}
+
+/* Sticky de la tarjeta Add-Post (tal como lo definimos antes) */
+$gap: 8px;
+.sticky-sidebar {
+  position: sticky;
+  top: $navbar-h + $gap;
+  max-height: calc(100vh - (#{$navbar-h} + $gap));
+  overflow-y: auto;
+}
   .navbar {
+    $navbar-h: 56px;
+$gap: 12px;
     background-color: #1F763B !important; /* Cambia a tu color */
   }
 .chat-card {
@@ -14,8 +42,10 @@ $new-post-border: #3b82f6;      // azul del mockup
 $new-post-btn-bg: #e5e5e5;      // gris claro
 $new-post-btn-hover: #d4d4d4;   // hover gris
 
-.new-post-card {
-  width: 300px;                 // ajústalo a tu gusto
+.new-post-card {  
+  width: 100%;            // se adapta en móviles
+  max-width: 380px;       // ⬅️ límite para desktop
+  margin-inline: auto;              // ajústalo a tu gusto
   border: 2px solid $new-post-border;
   border-radius: 8px;
   background: #fff;
@@ -46,8 +76,8 @@ $new-post-btn-hover: #d4d4d4;   // hover gris
     border-radius: 6px;
     padding: 0.75rem 1rem;
     font-size: 1rem;
-    transition: background 0.2s;
     width: 100%;
+    transition: background 0.2s;
 
     i {
       font-size: 1.2rem;

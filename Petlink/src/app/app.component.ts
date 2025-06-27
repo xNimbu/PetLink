@@ -20,7 +20,8 @@ export class AppComponent {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.showNavbar = e.urlAfterRedirects !== '/login';
+        this.showNavbar = e.urlAfterRedirects !== '/login'&&
+         e.urlAfterRedirects !== '/register';
       });
   }
 }

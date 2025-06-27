@@ -1,11 +1,36 @@
-$new-post-border: #eee3e3;      // azul del mockup
-$new-post-btn-bg: #eeeded;      // gris claro
-$new-post-btn-hover: #d4d4d4;   // hover gris
+// -------------------------------------------------------------
+// Variables de color
+$new-post-border:        #eee3e3;
+$new-post-btn-bg:        #28a745;  // verde
+$new-post-btn-hover:     #218838;  // verde oscuro
+$new-post-btn-text:      #ffffff;  // texto blanco
+// -------------------------------------------------------------
 
+/* ---------- Mixin COMPARTIDO (debe ir antes de @include) ---------- */
+@mixin new-post-green-btn {
+  background: $new-post-btn-bg;
+  color:      $new-post-btn-text;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $new-post-btn-hover;
+  }
+
+  &:disabled,
+  &[disabled] {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+/* ---------- Tarjeta “Nuevo post” ---------- */
 .new-post-card {
-  width: 320px;                 // ajústalo a tu gusto
-  border: 2px solid $new-post-border;
-  border-radius: 8px;
+  width: 100%;            // ocupa todo en móviles   // límite para que no sea enorme en desktop
+  margin-inline: 0px; 
+  border-radius: 5px;
   background: #ffffff;
   overflow: hidden;
   padding: 0.5rem 1rem;
@@ -27,22 +52,18 @@ $new-post-btn-hover: #d4d4d4;   // hover gris
     padding-bottom: 0.75rem;
   }
 
+  /* Botón “Crear nuevo post” (verde, ancho 100 %) */
   &__action {
-    background: $new-post-btn-bg;
-    color: #333;
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    transition: background 0.2s;
+    @include new-post-green-btn;
     width: 100%;
+    padding: 0.75rem 1rem;            // conserva tamaño
+  }
 
-    i {
-      font-size: 1.2rem;
-    }
-
-    &:hover {
-      background: $new-post-btn-hover;
-    }
+  /* Botón “Publicar” (verde, ancho auto) */
+  &__publish {
+    @include new-post-green-btn;
+    width: auto;
+    padding: 0.5rem 1.2rem;           // un poco más compacto
   }
 }
+

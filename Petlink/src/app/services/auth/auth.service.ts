@@ -31,16 +31,19 @@ export class AuthService {
   private readonly STORAGE_KEY = 'auth_token';
   _currentUser = new BehaviorSubject<User | null>(null);
 
+  /** Emite true cuando ya hay un token válido (incluso tras F5) */
+  private readySubject = new BehaviorSubject<boolean>(false);
+  ready$ = this.readySubject.asObservable();
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private auth: Auth,
     private http: HttpClient
   ) {
+    // 1️⃣ Carga token de localStorage si existe
     if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem(this.STORAGE_KEY);
-      if (token) {
-        this.idToken = token;
-      }
+      if (token) this.idToken = token;
     }
     authState(this.auth).subscribe(user => {
       this._currentUser.next(user);
@@ -60,17 +63,14 @@ export class AuthService {
     return token;
   }
 
-  private buildHeaders(includeAuth = false): HttpHeaders {
+
+
+  public httpOptions(includeAuth = false): { headers: HttpHeaders } {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (includeAuth) {
-      if (!this.idToken) throw new Error('No estás autenticado');
+    if (includeAuth && this.idToken) {
       headers = headers.set('Authorization', `Bearer ${this.idToken}`);
     }
-    return headers;
-  }
-
-  private httpOptions(includeAuth = false) {
-    return { headers: this.buildHeaders(includeAuth) };
+    return { headers };
   }
 
   private persistToken(token: string) {
