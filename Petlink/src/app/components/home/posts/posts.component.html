@@ -10,63 +10,36 @@
   </div>
 
   <!-- Lista de posts -->
-  <ng-container *ngIf="!loading && posts.length; else noPosts">
-    <div class="row">
-      <div *ngFor="let post of posts" class="col-12">
-        <div class="card post-card shadow-sm mb-3">
-          <!-- Header -->
-          <div class="card-header d-flex align-items-center bg-white border-0 pb-2">
-            <img [src]="post.userAvatar || '/assets/images/default-avatar.png'" class="rounded-circle me-3" width="40"
-              height="40" />
-            <div class="flex-grow-1">
-              <h6 class="mb-0">{{ post.username }}</h6>
-              <small class="text-muted">{{
-                post.timestamp | date : "short"
-                }}</small>
-            </div>
-
-            <!-- Menú de tres puntos -->
-            <div class="dropdown">
-              <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-three-dots fs-5"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <button class="dropdown-item text-danger" (click)="deletePost(post.id)">
-                    <i class="bi bi-trash me-2"></i>Eliminar publicación
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Texto -->
-          <div class="px-3 pb-2">
-            <p class="mb-2 card-text">{{ post.content }}</p>
-          </div>
-
-          <!-- Imagen (opcional) -->
-          <img *ngIf="post.photoURL" [src]="post.photoURL" class="card-img-top" alt="Imagen del post" />
-
-          <!-- Footer con Like -->
-          <div class="card-footer bg-white border-0 pt-0">
-            <button class="btn btn-like" (click)="toggleLike(post.id)" [attr.aria-pressed]="isLiked(post.id)">
-              <i [ngClass]="{
-                  'bi bi-heart-fill text-danger': isLiked(post.id),
-                  'bi bi-heart': !isLiked(post.id)
-                }">
-              </i>
-            </button>
-          </div>
+  <ng-container *ngIf="!loading && posts.length;">
+    <div
+      class="bg-white rounded-3 shadow-sm p-3 mb-3"
+      *ngFor="let post of posts"
+    >
+      <div class="d-flex align-items-center mb-2">
+        <img
+          [src]="user.photoURL"
+          class="rounded-circle me-2"
+          width="40"
+          height="40"
+        />
+        <div>
+          <strong>{{ user.fullName }}</strong
+          ><br />
+          <small class="text-muted">{{
+            post.timestamp | date : "short"
+          }}</small>
         </div>
+      </div>
+      <p>{{ post.content }}</p>
+      <div *ngIf="post.photoURL" class="post-image-square mt-3">
+        <img [src]="post.photoURL" class="rounded" />
+      </div>
+      <div class="d-flex justify-content-between mt-3 text-muted small">
+        <button class="btn btn-like" (click)="toggleLike(post.id)" [attr.aria-pressed]="isLiked(post.id)"><i class="me-1" [ngClass]="{'bi bi-heart-fill text-danger': isLiked(post.id),'bi bi-heart': !isLiked(post.id)}"></i>Me gusta</button>
+        <!-- <span><i class="bi bi-chat me-1"></i>Comentar</span>
+        <span><i class="bi bi-share me-1"></i>Compartir</span> -->
       </div>
     </div>
   </ng-container>
 
-  <!-- Sin posts -->
-  <ng-template #noPosts>
-    <div class="alert alert-secondary text-center my-5">
-      No hay publicaciones aún
-    </div>
-  </ng-template>
 </div>

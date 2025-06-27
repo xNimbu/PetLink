@@ -1,47 +1,56 @@
 <div class="container-fluid">
-    <!-- Presentación -->
-    <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
+  <!-- Presentación -->
+  <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
     <h5 class="fw-bold">Presentación</h5>
-    <p class="mb-1">¡Hola! Soy {{ user.fullName }}, amante de los animales y parte del equipo de desarrollo de PetLink 🐾</p>
+    <p class="mb-1">
+      ¡Hola! Soy {{ user.fullName }}, amante de los animales y parte del equipo
+      de desarrollo de PetLink 🐾
+    </p>
     <ul class="list-unstyled small text-secondary">
-        <li><i class="bi bi-building me-2"></i>Trabaja en PetLink</li>
-        <li><i class="bi bi-mortarboard me-2"></i>Estudió en Duoc UC</li>
-        <li><i class="bi bi-geo-alt me-2"></i>Vive en San Joaquín</li>
+      <li><i class="bi bi-building me-2"></i>Trabaja en PetLink</li>
+      <li><i class="bi bi-mortarboard me-2"></i>Estudió en Duoc UC</li>
+      <li><i class="bi bi-geo-alt me-2"></i>Vive en San Joaquín</li>
     </ul>
-    </div>
+  </div>
 
-    <!-- Fotos -->
-    <div class="bg-white rounded-3 shadow-sm p-3">
+  <!-- Fotos -->
+  <div class="bg-white rounded-3 shadow-sm p-3">
     <h5 class="fw-bold">Fotos</h5>
     <div class="row g-2">
-        <div class="col-4" *ngFor="let photo of petPhotos.slice(0, 9)">
+      <div class="col-4" *ngFor="let photo of petPhotos.slice(0, 9)">
         <div class="photo-box">
-            <img [src]="photo" class="img-fluid object-fit-cover w-100 h-100 rounded" />
+          <img
+            [src]="photo"
+            class="img-fluid object-fit-cover w-100 h-100 rounded"
+          />
         </div>
-        </div>
+      </div>
     </div>
     <div class="text-center mt-2">
-        <a href="#" class="text-decoration-none small">Ver todas las fotos</a>
+      <a href="#" class="text-decoration-none small">Ver todas las fotos</a>
     </div>
-    </div>
+  </div>
 
-    <!-- Amigos -->
-    <div class="bg-white rounded-3 shadow-sm p-3 mt-4">
+  <div class="bg-white rounded-3 shadow-sm p-3 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="fw-bold mb-0">Amigos</h5>
+      <h5 class="fw-bold mb-0">Amigos</h5>
     </div>
     <p class="text-muted small">{{ friends.length }} amigos</p>
 
     <div class="row g-2">
-        <div class="col-4" *ngFor="let friend of friends.slice(0, 9)">
+      <div class="col-4" *ngFor="let friend of friends.slice(0, 9)">
         <div class="friend-card text-center">
-            <img [src]="friend.photoURL" class="img-fluid rounded" style="aspect-ratio: 1 / 1; object-fit: cover;" />
-            <p class="small mt-1 mb-0 text-truncate">{{ friend.name }}</p>
+          <img
+            [src]="friend.avatar"
+            class="img-fluid rounded"
+            style="aspect-ratio: 1 / 1; object-fit: cover"
+          />
+          <p class="small mt-1 mb-0 text-truncate">{{ friend.username }}</p>
         </div>
-        </div>
+      </div>
     </div>
     <div class="text-center mt-2">
-        <a href="#" class="text-decoration-none small">Ver todos los amigos</a>
+      <a href="#" class="text-decoration-none small">Ver todos los amigos</a>
     </div>
-    </div>
+  </div>
 </div>

@@ -1,8 +1,8 @@
 // src/app/components/home/add-post/add-post.component.ts
 
 import { Component, Output, EventEmitter, inject } from '@angular/core';
-import { CommonModule }   from '@angular/common';
-import { FormsModule }    from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ProfileService } from '../../../services/profile/profile.service';
 
 @Component({
@@ -16,11 +16,32 @@ export class AddPostComponent {
   /** Ahora emitimos void; el padre recarga el feed desde el servicio */
   @Output() postCreated = new EventEmitter<void>();
 
+
+
   showForm = false;
   postContent = '';
   selectedFile: File | null = null;
 
+  user: any;
+  profileFields: { label: string, value: string }[] = [];
+
   private profileService = inject(ProfileService);
+
+  ngOnInit(): void {
+
+    this.profileService.getProfile()
+      .subscribe(profile => {
+        if (!profile) return;
+
+        this.user = profile;
+        this.profileFields = [
+          { label: 'Nombre completo', value: this.user.fullName },
+          { label: 'Correo electrónico', value: this.user.email },
+          { label: 'Teléfono', value: this.user.phone },
+          { label: 'Tipo de usuario', value: this.user.role },
+        ]});
+
+  }
 
   openForm() {
     this.showForm = true;
@@ -39,10 +60,13 @@ export class AddPostComponent {
       : null;
   }
 
+  removeFile(): void {
+    this.selectedFile = null;
+  }
+
   submitPost() {
     const text = this.postContent.trim();
     if (!text && !this.selectedFile) return;
-
     const formData = new FormData();
     formData.append('content', text);
     if (this.selectedFile) {
@@ -60,3 +84,7 @@ export class AddPostComponent {
     });
   }
 }
+function openForm(): ((error: any) => void) | null | undefined {
+  throw new Error('Function not implemented.');
+}
+
