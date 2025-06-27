@@ -1,19 +1,21 @@
-<!-- principal.component.html -->
-<div class="container">
-  <div class="row gx-4">
-    <!-- Izquierda: Nueva publicación -->
-    <div class="col-12 col-md-4 col-lg-3 order-1">
-      <app-add-post></app-add-post>
-    </div>
+<div class="bg-custom">
+  <div class="container-fluid px-0">
+    <div class="row gx-3">
+      <!-- Columna izquierda -->
+      <div class="col-12 col-md-5 col-lg-3 ps-3">
+        <div class="sticky-sidebar w-100">
+          <app-add-post></app-add-post>
+        </div>
+      </div>
 
-    <!-- Centro: Feed de posts -->
-    <div class="col-12 col-md-8 col-lg-6 order-2">
-      <app-posts></app-posts>
-    </div>
+      <!-- Centro y derecha sin cambios -->
+      <div class="col-12 col-md-8 col-lg-6 order-2 px-3">
+        <app-posts></app-posts>
+      </div>
 
-    <!-- Derecha: Chats -->
-    <div class="col-12 col-lg-3 order-3">
-      <app-chats></app-chats>
+      <div class="col-12 col-lg-3 order-3 pe-3">
+        <app-chats></app-chats>
+      </div>
     </div>
   </div>
 </div>
