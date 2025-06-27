@@ -39,7 +39,6 @@
   }
 }
 
-
 .list-group-item.active {
   background-color: #e9ecef;
 }
@@ -53,6 +52,7 @@
   max-height: 40vh;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 
   .card-header {
     background-color: #f8f9fa;
@@ -66,33 +66,34 @@
     padding: 0.5rem;
   }
 
-  .message {
+  .message-wrapper {
     display: flex;
     margin-bottom: 0.5rem;
 
-    &--me {
+    &.from-me {
       justify-content: flex-end;
-
-      .bubble {
-        background-color: #dcf8c6;
-        border-radius: 1rem 1rem 0 1rem;
-      }
     }
 
-    &--them {
+    &.from-them {
       justify-content: flex-start;
-
-      .bubble {
-        background-color: #f1f0f0;
-        border-radius: 1rem 1rem 1rem 0;
-      }
     }
+  }
 
-    .bubble {
-      padding: 0.5rem 0.75rem;
-      max-width: 75%;
-      word-wrap: break-word;
-      color: #000;
+  .message-bubble {
+    padding: 0.5rem 0.75rem;
+    max-width: 75%;
+    word-wrap: break-word;
+    color: #000;
+    line-height: 1.4;
+
+    // Estilo por defecto (otros)
+    background-color: #f1f0f0;
+    border-radius: 1rem 1rem 1rem 0;
+
+    // Mensajes propios
+    .from-me & {
+      background-color: #dcf8c6;
+      border-radius: 1rem 1rem 0 1rem;
     }
   }
 

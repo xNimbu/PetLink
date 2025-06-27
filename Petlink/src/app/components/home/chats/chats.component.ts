@@ -3,10 +3,13 @@ import {
   OnInit,
   OnDestroy,
   Inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  ViewChild,
+  ElementRef,
+  AfterViewChecked
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { filter, firstValueFrom, Subscription } from 'rxjs';
 import { Friend, FriendService } from '../../../services/friends/friend.service';
 import { ChatService } from '../../../services/chat/chat.service';
 import { FormsModule } from '@angular/forms';
@@ -27,93 +30,95 @@ interface ConversationMessage {
   templateUrl: './chats.component.html',
   styleUrls: ['./chats.component.scss']
 })
-export class ChatsComponent implements OnInit, OnDestroy {
+export class ChatsComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('chatBody', { static: false }) chatBody!: ElementRef<HTMLDivElement>;
+
+
   uid = '';
   currentUsername = '';
+  currentRoomId: string | null = null;
   friends: Friend[] = [];
   selectedChat: Friend | null = null;
   chatConversations: { [chatId: string]: ConversationMessage[] } = {};
   newMessageText = '';
   private msgSub?: Subscription;
+  private shouldScroll = false;
 
   constructor(
     private authService: AuthService,
     private friendSvc: FriendService,
     private chatSvc: ChatService,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    // Cargo UID y username del usuario autenticado
-    this.authService._currentUser.subscribe(user => {
+    // 1) Espera a que el estado de autenticación esté listo
+    this.authService.ready$.pipe(filter(r => r)).subscribe(() => {
+      const user = this.authService._currentUser.value;
       if (user) {
         this.uid = user.uid;
         this.currentUsername = user.displayName || user.email || user.uid;
+        // 2) Carga la lista de amigos una vez tengas el username
+        this.friendSvc.list().subscribe({
+          next: resp => this.friends = resp.friends,
+          error: err => console.error('Error cargando amigos', err)
+        });
       }
-    });
-
-    // Cargo lista de amigos
-    this.friendSvc.list().subscribe({
-      next: resp => {
-        this.friends = resp.friends;
-      },
-      error: err => console.error('Error cargando amigos', err)
     });
   }
 
-  async openChat(f: Friend) {
-    this.selectedChat = f;
-    // Ahora usamos una mezcla de usernames para el roomId
-    const roomId = this.makeChatIdByUsername(
-      this.currentUsername,
-      f.username
-    );
-    this.chatConversations[roomId] ||= [];
-
-    console.log('[ChatsComponent] Sala de chat (por username):', roomId);
-
-    // Cierra la conexión anterior
-    this.chatSvc.ngOnDestroy();
-    this.msgSub?.unsubscribe();
-
-    let token: string;
-    try {
-      token = await this.authService.getIdToken();
-    } catch (e) {
-      console.error('No pude obtener token de Firebase:', e);
-      return;
+  ngAfterViewChecked() {
+    if (this.shouldScroll) {
+      this.shouldScroll = false;
+      this.chatBody.nativeElement.scrollTop =
+        this.chatBody.nativeElement.scrollHeight;
     }
-    console.log('[ChatsComponent] Token de Firebase:', token);
+  }
 
+  async openChat(f: Friend) {
+    // 0) Marca el seleccionado
+    this.selectedChat = f;
+
+    // 1) USA LOS UIDs para generar la sala
+    //    Garantiza que ambos clientes den el mismo resultado
+    const me = this.authService.uid!;
+    const you = f.uid;
+    const roomId = [me, you].sort().join('_');   // p.ej. "UID_A_UID_B"
+    this.currentRoomId = roomId;
+
+
+    // 2) Carga historial HTTP
+    const token = await this.authService.getIdToken();
+    const history = await firstValueFrom(this.chatSvc.fetchHistory(roomId, token));
+    this.chatConversations[roomId] = history.map(h => ({
+      sender: h.user === this.currentUsername ? 'me' : 'them',
+      text: h.message
+    }));
+    this.scrollToBottom();
+
+    // 3) Conecta WS a la **misma** sala
+    this.chatSvc.disconnect();
+    this.msgSub?.unsubscribe();
     this.chatSvc.connect(token, roomId);
     this.msgSub = this.chatSvc.messages$.subscribe(m => {
+      if (m.history) {
+        return;
+      }
       const sender = m.user === this.currentUsername ? 'me' : 'them';
-      this.chatConversations[roomId].push({ sender, text: m.message! });
+      this.chatConversations[this.currentRoomId!].push({
+        sender,
+        text: m.message!
+      });
+      this.scrollToBottom();
     });
   }
 
   sendMessage() {
     if (!this.newMessageText.trim() || !this.selectedChat) return;
-    // Generamos el mismo roomId con usernames
-    const chatId = this.makeChatIdByUsername(
-      this.currentUsername,
-      this.selectedChat.username
-    );
-
     this.chatSvc.sendMessage(this.newMessageText);
-    this.chatConversations[chatId].push({
-      sender: 'me',
-      text: this.newMessageText
-    });
     this.newMessageText = '';
-  }
-
-  closeChat() {
-    this.selectedChat = null;
-    this.chatSvc.ngOnDestroy();
-    this.msgSub?.unsubscribe();
   }
 
   /**
@@ -122,17 +127,36 @@ export class ChatsComponent implements OnInit, OnDestroy {
    */
   public makeChatIdByUsername(a: string, b: string): string {
     return [a, b]
-      .map(u => u.trim().toLowerCase().replace(/\s+/g, ''))
+      .map(u =>
+        u
+          .trim()
+          .toLowerCase()
+          // solo letras, números y '_' → quita puntos, espacios, tildes, etc.
+          .replace(/[^a-z0-9_]/g, '')
+      )
       .sort()
       .join('_');
   }
+
+
 
   public getChatIdByUsername(a: string, b: string): string {
     return this.makeChatIdByUsername(a, b);
   }
 
+  private scrollToBottom() {
+    // En vez de setTimeout, marcamos la bandera para AfterViewChecked
+    this.shouldScroll = true;
+  }
+
+  closeChat() {
+    this.selectedChat = null;
+    this.chatSvc.disconnect();
+    this.msgSub?.unsubscribe();
+  }
+
   ngOnDestroy() {
-    this.chatSvc.ngOnDestroy();
+    this.chatSvc.disconnect();
     this.msgSub?.unsubscribe();
   }
 }
