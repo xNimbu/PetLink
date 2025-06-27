@@ -1,59 +1,63 @@
 // src/app/services/chat.service.ts
-import { Injectable } from '@angular/core';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { Injectable, OnDestroy } from '@angular/core';
+import { Subject, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-export interface ChatEvent {
-  type: 'auth.success' | 'history' | 'chat.message';
+interface ChatMessage {
   user: string;
   message: string;
+  history?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
-export class ChatService {
-  private socket$: WebSocketSubject<any> | null = null;
+export class ChatService implements OnDestroy {
+  private socket: WebSocket | null = null;
+  private messagesSub = new Subject<ChatMessage>();
+  readonly messages$: Observable<ChatMessage> = this.messagesSub.asObservable();
 
-  connect(room: string = 'prueba'): Observable<ChatEvent> {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      throw new Error('No se encontró token en localStorage under key "auth_token"');
-    }
+  connect(token: string, room: string) {
+    // El wsUrl ya incluye protocolo y path /ws/chat/
+    const url = `${environment.wsUrl}${room}/`;
+    console.log('[ChatService] Conectando a', url);
 
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const url      = `${protocol}://${window.location.host}/ws/chat/${room}/`;
+    if (this.socket) this.socket.close();
+    this.socket = new WebSocket(url);
 
-    this.socket$ = webSocket({
-      url,
-      openObserver: {
-        next: () => {
-          // Cuando abre el socket, enviamos auth automáticamente
-          if (this.socket$) {
-            this.socket$.next({ type: 'auth', token });
-          }
-        },
-      },
-      closeObserver: {
-        next: () => console.log('WebSocket cerrado'),
-      },
+    this.socket.addEventListener('open', () => {
+      console.log('[ChatService] OPEN → enviando auth');
+      this.socket!.send(JSON.stringify({ type: 'auth', token }));
     });
 
-    return this.socket$.pipe(
-      filter(msg => !!msg.type),
-      map(msg => msg as ChatEvent)
-    );
+    this.socket.addEventListener('message', ({ data }) => {
+      let d: any;
+      try { d = JSON.parse(data); }
+      catch { return; }
+      // Solo nos interesan historial y mensajes live
+      if (d.type === 'history' || d.type === 'chat.message') {
+        this.messagesSub.next({
+          user: d.user,
+          message: d.message,
+          history: d.type === 'history'
+        });
+      }
+    });
+
+    this.socket.addEventListener('error', err => {
+      console.error('[ChatService] WS error', err);
+    });
+    this.socket.addEventListener('close', () => {
+      console.log('[ChatService] WS cerrado');
+      this.socket = null;
+    });
   }
 
-  sendMessage(text: string) {
-    if (this.socket$) {
-      this.socket$.next({ message: text });
+  sendMessage(message: string) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ message }));
     }
   }
 
-  disconnect() {
-    if (this.socket$) {
-      this.socket$.complete();
-      this.socket$ = null;
-    }
+  ngOnDestroy() {
+    if (this.socket) this.socket.close();
   }
 }

@@ -25,7 +25,7 @@ export class LoginComponent {
     private toastr: ToastrService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loginForm = this.fb.group({
@@ -56,10 +56,22 @@ export class LoginComponent {
     }
   }
 
+  onRegister() {
+    this.router.navigate(['register'], { relativeTo: this.route.parent });
+  }
+
   async onLoginGoogle() {
     this.loading = true;
     try {
-      await this.authService.loginWithGoogle();
+      const data = await this.authService.loginWithGoogle();
+
+      // Aquí ya tienes:
+      // data.profile, data.posts, data.friends, data.pets
+      console.log('Perfil:', data.profile);
+      console.log('Posts:', data.posts);
+      console.log('Friends:', data.friends);
+      console.log('Pets:', data.pets);
+
       this.toastr.success('¡Login con Google exitoso!', 'Bienvenido');
       this.router.navigate(['/home']);
     } catch (err: any) {
@@ -67,9 +79,5 @@ export class LoginComponent {
     } finally {
       this.loading = false;
     }
-  }
-
-  onRegister() {
-    this.router.navigate(['register'], { relativeTo: this.route.parent });
   }
 }

@@ -26,10 +26,6 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn) {
-      window.location.href = '/login';
-      return;
-    }
     this.loadProfile();
   }
 

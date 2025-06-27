@@ -1,109 +1,138 @@
-// src/app/chats/chats.component.ts
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Inject,
+  PLATFORM_ID
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ChatEvent, ChatService } from '../../../services/chat/chat.service';
 import { Subscription } from 'rxjs';
 import { Friend, FriendService } from '../../../services/friends/friend.service';
+import { ChatService } from '../../../services/chat/chat.service';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../services/auth/auth.service';
 
-interface Message {
-  username: string;
-  avatar: string;
-  unreadCount: number;
+interface ConversationMessage {
+  sender: 'me' | 'them';
+  text: string;
 }
 
 @Component({
   selector: 'app-chats',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+  ],
   templateUrl: './chats.component.html',
   styleUrls: ['./chats.component.scss']
 })
-export class ChatsComponent implements OnInit {
-  showChat = true;
-  messages: Friend[] = [];
+export class ChatsComponent implements OnInit, OnDestroy {
+  uid = '';
+  currentUsername = '';
+  friends: Friend[] = [];
   selectedChat: Friend | null = null;
+  chatConversations: { [chatId: string]: ConversationMessage[] } = {};
   newMessageText = '';
-  chatConversations: Record<string, Array<{ sender: 'me' | 'them'; text: string }>> = {};
-  private socketSub?: Subscription;
-  private friendsSub?: Subscription;
+  private msgSub?: Subscription;
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private friendService: FriendService,
-    private chatService: ChatService
-  ) { }
+    private authService: AuthService,
+    private friendSvc: FriendService,
+    private chatSvc: ChatService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
-  ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.friendsSub = this.friendService.list().subscribe({
-        next: resp => {
-          // 1) Rellena la lista de amigos
-          this.messages = resp.friends;
-          // 2) Inicializa un array vacío de mensajes para cada amigo
-          this.messages.forEach(f => {
-            this.chatConversations[f.uid] = [];
-          });
-        },
-        error: err => console.error('Error cargando amigos', err)
-      });
-    }
-  }
+  ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
 
-  ngOnDestroy(): void {
-    this.friendsSub?.unsubscribe();
-    this.socketSub?.unsubscribe();
-    this.chatService.disconnect();
-  }
-
-  openChat(friend: Friend): void {
-    this.selectedChat = friend;
-    this.socketSub?.unsubscribe();
-    this.chatService.disconnect();
-
-    // Asegúrate de que existe el array
-    if (!this.chatConversations[friend.uid]) {
-      this.chatConversations[friend.uid] = [];
-    }
-
-    // Conéctate a la sala usando el uid del amigo
-    this.socketSub = this.chatService.connect(friend.uid)
-      .subscribe({
-        next: evt => this.handleEvent(evt, friend.uid),
-        error: err => console.error(err)
-      });
-  }
-
-  closeChat(): void {
-    this.selectedChat = null;
-    this.newMessageText = '';
-    this.socketSub?.unsubscribe();
-    this.chatService.disconnect();
-  }
-
-  sendMessage(): void {
-    if (!this.selectedChat || !this.newMessageText.trim()) return;
-
-    // Envía al canal
-    this.chatService.sendMessage(this.newMessageText.trim());
-
-    // Guarda localmente
-    this.chatConversations[this.selectedChat.uid].push({
-      sender: 'me',
-      text: this.newMessageText.trim()
+    // Cargo UID y username del usuario autenticado
+    this.authService._currentUser.subscribe(user => {
+      if (user) {
+        this.uid = user.uid;
+        this.currentUsername = user.displayName || user.email || user.uid;
+      }
     });
-    this.newMessageText = '';
+
+    // Cargo lista de amigos
+    this.friendSvc.list().subscribe({
+      next: resp => {
+        this.friends = resp.friends;
+      },
+      error: err => console.error('Error cargando amigos', err)
+    });
   }
 
-  private handleEvent(evt: ChatEvent, room: string) {
-    if (evt.type === 'auth.success') {
+  async openChat(f: Friend) {
+    this.selectedChat = f;
+    // Ahora usamos una mezcla de usernames para el roomId
+    const roomId = this.makeChatIdByUsername(
+      this.currentUsername,
+      f.username
+    );
+    this.chatConversations[roomId] ||= [];
+
+    console.log('[ChatsComponent] Sala de chat (por username):', roomId);
+
+    // Cierra la conexión anterior
+    this.chatSvc.ngOnDestroy();
+    this.msgSub?.unsubscribe();
+
+    let token: string;
+    try {
+      token = await this.authService.getIdToken();
+    } catch (e) {
+      console.error('No pude obtener token de Firebase:', e);
       return;
     }
-    // history o chat.message
-    this.chatConversations[room].push({
-      sender: evt.type === 'history' ? 'them'
-        : (evt.user === 'me' ? 'me' : 'them'),
-      text: evt.message
+    console.log('[ChatsComponent] Token de Firebase:', token);
+
+    this.chatSvc.connect(token, roomId);
+    this.msgSub = this.chatSvc.messages$.subscribe(m => {
+      const sender = m.user === this.currentUsername ? 'me' : 'them';
+      this.chatConversations[roomId].push({ sender, text: m.message! });
     });
+  }
+
+  sendMessage() {
+    if (!this.newMessageText.trim() || !this.selectedChat) return;
+    // Generamos el mismo roomId con usernames
+    const chatId = this.makeChatIdByUsername(
+      this.currentUsername,
+      this.selectedChat.username
+    );
+
+    this.chatSvc.sendMessage(this.newMessageText);
+    this.chatConversations[chatId].push({
+      sender: 'me',
+      text: this.newMessageText
+    });
+    this.newMessageText = '';
+  }
+
+  closeChat() {
+    this.selectedChat = null;
+    this.chatSvc.ngOnDestroy();
+    this.msgSub?.unsubscribe();
+  }
+
+  /**
+   * Construye un ID de sala combinando dos usernames en orden alfabético,
+   * normalizando eliminando espacios y pasando a minúsculas.
+   */
+  public makeChatIdByUsername(a: string, b: string): string {
+    return [a, b]
+      .map(u => u.trim().toLowerCase().replace(/\s+/g, ''))
+      .sort()
+      .join('_');
+  }
+
+  public getChatIdByUsername(a: string, b: string): string {
+    return this.makeChatIdByUsername(a, b);
+  }
+
+  ngOnDestroy() {
+    this.chatSvc.ngOnDestroy();
+    this.msgSub?.unsubscribe();
   }
 }

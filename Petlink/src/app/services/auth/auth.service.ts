@@ -1,15 +1,35 @@
-// src/app/services/auth.service.ts
+// src/app/services/auth/auth.service.ts
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Auth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from '@angular/fire/auth';
-import { firstValueFrom } from 'rxjs';
+import {
+  Auth,
+  authState,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  User,
+  UserCredential
+} from '@angular/fire/auth';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
+
+export interface GoogleLoginResponse {
+  mensaje: string;
+  uid: string;
+  role: string;
+  code: number;
+  profile: any;
+  posts: any[];
+  friends: any[];
+  pets: any[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private idToken: string | null = null;
   private readonly STORAGE_KEY = 'auth_token';
+  _currentUser = new BehaviorSubject<User | null>(null);
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -22,6 +42,22 @@ export class AuthService {
         this.idToken = token;
       }
     }
+    authState(this.auth).subscribe(user => {
+      this._currentUser.next(user);
+    });
+  }
+
+  get uid(): string | null {
+    return this._currentUser.value?.uid ?? null;
+  }
+
+  async getIdToken(): Promise<string> {
+    if (this.idToken) return this.idToken;
+    const user = await firstValueFrom(authState(this.auth));
+    if (!user) throw new Error('No hay usuario autenticado');
+    const token = await user.getIdToken();
+    this.persistToken(token);
+    return token;
   }
 
   private buildHeaders(includeAuth = false): HttpHeaders {
@@ -44,51 +80,50 @@ export class AuthService {
     }
   }
 
+  /** Login con email/password */
   async loginWithEmail(email: string, password: string): Promise<string> {
     const cred: UserCredential = await signInWithEmailAndPassword(this.auth, email, password);
     const token = await cred.user.getIdToken();
-    this.persistToken(token)
+    this.persistToken(token);
     return token;
   }
 
-  async loginWithGoogle(): Promise<string> {
-    // 1️⃣ Autenticación con Firebase
+  /**
+   * Login con Google:
+   * - Autentica en Firebase
+   * - Obtiene ID Token
+   * - Llama a /login_google/ enviando perfil inicial
+   * - Devuelve GoogleLoginResponse con profile, posts, friends y pets
+   */
+  async loginWithGoogle(): Promise<GoogleLoginResponse> {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(this.auth, provider);
 
-    // 2️⃣ Obtener y persistir el token
     const token = await result.user.getIdToken();
     this.persistToken(token);
 
-    // 3️⃣ Construir perfil inicial
     const perfil = {
       fullName: result.user.displayName || '',
       username: result.user.email?.split('@')[0] || '',
       email: result.user.email || '',
       phone: '',
-      role: '',
+      role: 'user',
       photoURL: result.user.photoURL || ''
     };
 
-    // 4️⃣ Intentar crear/actualizar perfil, pero SIN bloquear el login
-    try {
-      await firstValueFrom(
-        this.http.post(
-          `${environment.backendUrl}/profile/`,
-          perfil,
-          this.httpOptions(true)
-        )
-      );
-    } catch (e) {
-      console.warn('No se pudo crear el perfil automáticamente:', e);
-      // Opcional: mostrar un Toastr o similar, pero NO throw
-    }
+    const url = `${environment.backendUrl}/login_google/`;
+    const response = await firstValueFrom(
+      this.http.post<GoogleLoginResponse>(
+        url,
+        perfil,
+        this.httpOptions(true)
+      )
+    );
 
-    // 5️⃣ Devolver siempre el token para que el componente continúe
-    return token;
+    return response;
   }
 
-
+  /** Cierra sesión */
   logout(): void {
     this.idToken = null;
     if (isPlatformBrowser(this.platformId)) {
@@ -97,7 +132,7 @@ export class AuthService {
     this.auth.signOut();
   }
 
-  /** Llama a tu endpoint protegido: usa environment.backendUrl tal cual */
+  /** Ejemplo de llamada a un endpoint protegido */
   async getProtectedData(): Promise<any> {
     return firstValueFrom(
       this.http.get<any>(
@@ -107,7 +142,7 @@ export class AuthService {
     );
   }
 
-  /** Registrar usuario: asume que tu ruta en Django es `/crear-usuario/` */
+  /** Registrar nuevo usuario */
   register(email: string, password: string, nombre: string): Promise<{ uid: string }> {
     return firstValueFrom(
       this.http.post<{ uid: string }>(
@@ -118,29 +153,26 @@ export class AuthService {
     );
   }
 
-  /** Exponer el idToken */
+  /** Exponer el token en caso de necesidad */
   get token(): string | null {
     return this.idToken;
   }
 
-  /** Saber si hay sesión iniciada */
+  /** Saber si hay sesión */
   get isLoggedIn(): boolean {
     return !!this.idToken;
   }
 
+  /**
+   * Cabeceras de autenticación genéricas:
+   * { headers: HttpHeaders }
+   */
   public getAuthHeaders(): { headers: HttpHeaders } {
-    if (this.idToken) {
-      return {
-        headers: new HttpHeaders({
-          'Authorization': `Bearer ${this.idToken}`
-        })
-      };
-    } else {
-      console.warn('Intentando usar auth headers sin token');
-      return { headers: new HttpHeaders() };
-    }
+    const headers = this.buildHeaders(true);
+    return { headers };
   }
 
+  /** Para peticiones JSON (Content-Type + Auth) */
   public jsonOptions() {
     return {
       headers: new HttpHeaders({
@@ -150,6 +182,7 @@ export class AuthService {
     };
   }
 
+  /** Para peticiones form-data (Auth) */
   public formOptions() {
     return {
       headers: new HttpHeaders({

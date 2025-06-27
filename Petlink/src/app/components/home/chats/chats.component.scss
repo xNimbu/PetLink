@@ -1,0 +1,15 @@
+.list-group-item.active {
+  background-color: #e9ecef;
+}
+.chat-window {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 300px;
+  z-index: 1050;
+  font-size: 0.9rem;
+}
+.chat-body {
+  height: 200px;
+  overflow-y: auto;
+}

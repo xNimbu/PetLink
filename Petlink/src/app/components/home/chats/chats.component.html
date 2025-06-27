@@ -1,39 +1,32 @@
 <!-- Sidebar de chats -->
-<div *ngIf="showChat" class="my-4">
-  <div class="card">
-    <div class="card-header">Mensajes</div>
-    <ul class="list-group list-group-flush">
-      <li *ngFor="let friend of messages" class="list-group-item d-flex align-items-center" (click)="openChat(friend)"
-        style="cursor: pointer">
-        <img [src]="friend.avatar" class="rounded-circle me-2" width="30" height="30" />
-        <div>
-          <strong>{{ friend.username }}</strong>
-        </div>
-      </li>
-    </ul>
-  </div>
+<div *ngIf="friends.length">
+  <ul class="list-group">
+    <li *ngFor="let f of friends" class="list-group-item" (click)="openChat(f)"
+      [class.active]="selectedChat?.uid === f.uid">
+      {{ f.username }}
+    </li>
+  </ul>
 </div>
 
-<!-- Mini-ventana de chat -->
+<!-- Ventana de chat -->
 <div *ngIf="selectedChat" class="chat-window card shadow"
-  style="position: fixed; bottom: 1rem; right: 1rem; width: 300px; z-index:1050;">
-  <div class="card-header d-flex justify-content-between align-items-center p-2">
-    <span>{{ selectedChat.username }}</span>
-    <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeChat()">
-    </button>
+  style="position: fixed; bottom:1rem; right:1rem; width:300px; z-index:1050;">
+  <div class="card-header d-flex justify-content-between">
+    <span>Chat con {{ selectedChat.username }}</span>
+    <button class="btn-close" (click)="closeChat()"></button>
   </div>
 
-  <div class="card-body chat-body p-2" style="height:200px; overflow-y:auto;">
-    <div *ngFor="let m of chatConversations[selectedChat.uid]">
+  <div class="card-body p-2" style="height:200px; overflow-y:auto;">
+    <div *ngFor="let m of chatConversations[ getChatIdByUsername(currentUsername, selectedChat.username) ]">
       <div [ngClass]="{
-            'd-flex justify-content-end': m.sender==='me',
-            'd-flex justify-content-start': m.sender!=='me'
-          }">
+              'd-flex justify-content-end': m.sender === 'me',
+              'd-flex justify-content-start': m.sender === 'them'
+            }">
         <div class="p-1 mb-1" [ngStyle]="{
-               'background-color': m.sender==='me' ? '#DCF8C6' : '#F1F0F0',
-               'border-radius': '8px',
-               'max-width': '80%'
-             }">
+                'background-color': m.sender==='me'?'#DCF8C6':'#F1F0F0',
+                'border-radius':'8px',
+                'max-width':'80%'
+              }">
           {{ m.text }}
         </div>
       </div>
@@ -42,8 +35,7 @@
 
   <div class="card-footer p-2">
     <div class="input-group input-group-sm">
-      <input type="text" class="form-control" placeholder="Escribe..." [(ngModel)]="newMessageText"
-        (keyup.enter)="sendMessage()" />
+      <input class="form-control" [(ngModel)]="newMessageText" (keyup.enter)="sendMessage()" placeholder="Escribe…" />
       <button class="btn btn-primary" (click)="sendMessage()">Enviar</button>
     </div>
   </div>
