@@ -13,40 +13,26 @@
   <ng-container *ngIf="!loading && posts.length; else noPosts">
     <div class="row">
       <div *ngFor="let post of posts" class="col-12">
-        <div class="card post-card shadow-sm">
+        <div class="card post-card shadow-sm mb-3">
           <!-- Header -->
-          <div
-            class="card-header d-flex align-items-center bg-white border-0 pb-2"
-          >
-            <img
-              [src]="post.userAvatar || '/assets/images/default-avatar.png'"
-              class="rounded-circle me-3"
-              width="40"
-              height="40"
-            />
+          <div class="card-header d-flex align-items-center bg-white border-0 pb-2">
+            <img [src]="post.userAvatar || '/assets/images/default-avatar.png'" class="rounded-circle me-3" width="40"
+              height="40" />
             <div class="flex-grow-1">
               <h6 class="mb-0">{{ post.username }}</h6>
               <small class="text-muted">{{
                 post.timestamp | date : "short"
-              }}</small>
+                }}</small>
             </div>
 
             <!-- Menú de tres puntos -->
             <div class="dropdown">
-              <button
-                class="btn btn-link text-muted p-0"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
+              <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-three-dots fs-5"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li>
-                  <button
-                    class="dropdown-item text-danger"
-                    (click)="deletePost(post.id)"
-                  >
+                  <button class="dropdown-item text-danger" (click)="deletePost(post.id)">
                     <i class="bi bi-trash me-2"></i>Eliminar publicación
                   </button>
                 </li>
@@ -60,26 +46,15 @@
           </div>
 
           <!-- Imagen (opcional) -->
-          <img
-            *ngIf="post.photoURL"
-            [src]="post.photoURL"
-            class="card-img-top"
-            alt="Imagen del post"
-          />
+          <img *ngIf="post.photoURL" [src]="post.photoURL" class="card-img-top" alt="Imagen del post" />
 
           <!-- Footer con Like -->
           <div class="card-footer bg-white border-0 pt-0">
-            <button
-              class="btn btn-like"
-              (click)="toggleLike(post.id)"
-              [attr.aria-pressed]="isLiked(post.id)"
-            >
-              <i
-                [ngClass]="{
+            <button class="btn btn-like" (click)="toggleLike(post.id)" [attr.aria-pressed]="isLiked(post.id)">
+              <i [ngClass]="{
                   'bi bi-heart-fill text-danger': isLiked(post.id),
                   'bi bi-heart': !isLiked(post.id)
-                }"
-              >
+                }">
               </i>
             </button>
           </div>

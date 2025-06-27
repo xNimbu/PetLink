@@ -4,7 +4,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   Auth,
   authState,
+  browserLocalPersistence,
   GoogleAuthProvider,
+  setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
   User,
@@ -47,8 +49,11 @@ export class AuthService {
         this.idToken = token;
       }
     }
+    setPersistence(this.auth, browserLocalPersistence)
+    .catch(e => console.warn('No se pudo setear persistencia:', e));
     authState(this.auth).subscribe(user => {
       this._currentUser.next(user);
+      this.readySubject.next(true);
     });
   }
 

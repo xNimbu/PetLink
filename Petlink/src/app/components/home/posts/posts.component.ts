@@ -1,9 +1,9 @@
 // src/app/components/home/posts/posts.component.ts
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule }   from '@angular/common';
-import { FormsModule }    from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ProfileService, Post, Profile } from '../../../services/profile/profile.service';
-import { AuthService }    from '../../../services/auth/auth.service';
+import { AuthService } from '../../../services/auth/auth.service';
 
 interface DisplayPost extends Post {
   username: string;
@@ -29,7 +29,7 @@ export class PostsComponent implements OnInit {
   likedPostIds = new Set<string>();
 
   private profileService = inject(ProfileService);
-  private authService    = inject(AuthService);
+  private authService = inject(AuthService);
 
   /* --------------------- CICLO DE VIDA ---------------------------------- */
   ngOnInit(): void {
