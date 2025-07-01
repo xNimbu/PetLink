@@ -84,7 +84,3 @@ export class AddPostComponent {
     });
   }
 }
-function openForm(): ((error: any) => void) | null | undefined {
-  throw new Error('Function not implemented.');
-}
-
