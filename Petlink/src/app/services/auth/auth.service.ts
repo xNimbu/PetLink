@@ -17,14 +17,15 @@ import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
 export interface GoogleLoginResponse {
-  mensaje: string;
-  uid: string;
-  role: string;
-  code: number;
-  profile: any;
-  posts: any[];
-  friends: any[];
-  pets: any[];
+  token: string;
+  profile: {
+    fullName: string;
+    username: string;
+    email: string;
+    phone: string;
+    role: string;
+    photoURL: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -103,7 +104,7 @@ export class AuthService {
    * - Autentica en Firebase
    * - Obtiene ID Token
    * - Llama a /login_google/ enviando perfil inicial
-   * - Devuelve GoogleLoginResponse con profile, posts, friends y pets
+   * - Devuelve solo token y perfil mínimo
    */
   async loginWithGoogle(): Promise<GoogleLoginResponse> {
     const provider = new GoogleAuthProvider();
@@ -112,7 +113,7 @@ export class AuthService {
     const token = await result.user.getIdToken();
     this.persistToken(token);
 
-    const perfil = {
+    const profile = {
       fullName: result.user.displayName || '',
       username: result.user.email?.split('@')[0] || '',
       email: result.user.email || '',
@@ -122,15 +123,15 @@ export class AuthService {
     };
 
     const url = `${environment.backendUrl}/login_google/`;
-    const response = await firstValueFrom(
-      this.http.post<GoogleLoginResponse>(
+    await firstValueFrom(
+      this.http.post(
         url,
-        perfil,
+        profile,
         this.httpOptions(true)
       )
     );
 
-    return response;
+    return { token, profile };
   }
 
   /** Cierra sesión */
