@@ -1,5 +1,5 @@
 // src/app/services/auth/auth.service.ts
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Inject, Injectable, Optional, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   Auth,
@@ -40,22 +40,30 @@ export class AuthService {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private auth: Auth,
+    @Optional() private auth: Auth,
     private http: HttpClient
   ) {
     // 1️⃣ Carga token de localStorage si existe
-    if (isPlatformBrowser(this.platformId)) {
+    if (this.auth && isPlatformBrowser(this.platformId)) {
+      // 1️⃣ Carga token de localStorage
       const token = localStorage.getItem(this.STORAGE_KEY);
       if (token) {
         this.idToken = token;
       }
-    }
-    setPersistence(this.auth, browserLocalPersistence)
-    .catch(e => console.warn('No se pudo setear persistencia:', e));
-    authState(this.auth).subscribe(user => {
-      this._currentUser.next(user);
+
+      // 2️⃣ Persistencia
+      setPersistence(this.auth, browserLocalPersistence)
+        .catch(e => console.warn('No se pudo setear persistencia:', e));
+
+      // 3️⃣ Escucho cambios de estado
+      authState(this.auth).subscribe(user => {
+        this._currentUser.next(user);
+        this.readySubject.next(true);
+      });
+    } else {
+      // SSR: marcamos listo para que no bloquee el isStable
       this.readySubject.next(true);
-    });
+    }
   }
 
   get uid(): string | null {
