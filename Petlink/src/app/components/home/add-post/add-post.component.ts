@@ -1,9 +1,10 @@
 // src/app/components/home/add-post/add-post.component.ts
-
-import { Component, Output, EventEmitter, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Output, EventEmitter, inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProfileService } from '../../../services/profile/profile.service';
+import { ProfileService, Profile } from '../../../services/profile/profile.service';
+import { AuthService } from '../../../services/auth/auth.service';
+import { catchError, filter, first, switchMap, of } from 'rxjs';
 
 @Component({
   selector: 'app-add-post',
@@ -12,48 +13,60 @@ import { ProfileService } from '../../../services/profile/profile.service';
   templateUrl: './add-post.component.html',
   styleUrls: ['./add-post.component.scss']
 })
-export class AddPostComponent {
-  /** Ahora emitimos void; el padre recarga el feed desde el servicio */
+export class AddPostComponent implements OnInit {
   @Output() postCreated = new EventEmitter<void>();
-
-
 
   showForm = false;
   postContent = '';
   selectedFile: File | null = null;
 
-  user: any;
-  profileFields: { label: string, value: string }[] = [];
+  user!: Profile;
+  profileFields: { label: string; value: string }[] = [];
 
   private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
 
-    this.profileService.getProfile()
+    this.authService.ready$
+      .pipe(
+        filter(ready => ready),
+        first(),
+        switchMap(() => this.profileService.getProfile()),
+        catchError(err => {
+          console.error('Error cargando perfil', err);
+          return of<Profile | null>(null);
+        })
+      )
       .subscribe(profile => {
-        if (!profile) return;
-
+        if (!profile) {
+          return;
+        }
         this.user = profile;
         this.profileFields = [
-          { label: 'Nombre completo', value: this.user.fullName },
-          { label: 'Correo electrónico', value: this.user.email },
-          { label: 'Teléfono', value: this.user.phone },
-          { label: 'Tipo de usuario', value: this.user.role },
-        ]});
-
+          { label: 'Nombre completo',      value: profile.fullName },
+          { label: 'Correo electrónico',   value: profile.email },
+          { label: 'Teléfono',             value: profile.phone },
+          { label: 'Tipo de usuario',      value: profile.role }
+        ];
+      });
   }
 
-  openForm() {
+  openForm(): void {
     this.showForm = true;
   }
 
-  cancel() {
+  cancel(): void {
     this.showForm = false;
     this.postContent = '';
     this.selectedFile = null;
   }
 
-  onFileSelected(event: Event) {
+  onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedFile = input.files && input.files.length
       ? input.files[0]
@@ -64,19 +77,20 @@ export class AddPostComponent {
     this.selectedFile = null;
   }
 
-  submitPost() {
+  submitPost(): void {
     const text = this.postContent.trim();
-    if (!text && !this.selectedFile) return;
+    if (!text && !this.selectedFile) {
+      return;
+    }
+
     const formData = new FormData();
     formData.append('content', text);
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);
     }
 
-    // Llamamos siempre a createPostWithImage, independientemente de si hay archivo.
     this.profileService.createPostWithImage(formData).subscribe({
       next: () => {
-        // Emitimos sin payload; el padre escuchará y recargará el listado.
         this.postCreated.emit();
         this.cancel();
       },

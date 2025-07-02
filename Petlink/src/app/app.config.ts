@@ -40,6 +40,7 @@ export const appConfig: ApplicationConfig = {
         preventDuplicates: true
       })
     ),
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
 
     // SSR vs Browser
     ...(typeof window === 'undefined'
@@ -50,7 +51,6 @@ export const appConfig: ApplicationConfig = {
         ]
       : [
           provideClientHydration(),
-          provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
           provideAuth(() => getAuth())
         ])
   ]

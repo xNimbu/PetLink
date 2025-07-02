@@ -6,6 +6,7 @@ import {
   authState,
   browserLocalPersistence,
   GoogleAuthProvider,
+  onIdTokenChanged,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -32,6 +33,7 @@ export interface GoogleLoginResponse {
 export class AuthService {
   private idToken: string | null = null;
   private readonly STORAGE_KEY = 'auth_token';
+  private refreshIntervalId: any;
   _currentUser = new BehaviorSubject<User | null>(null);
 
   /** Emite true cuando ya hay un token válido (incluso tras F5) */
@@ -60,6 +62,15 @@ export class AuthService {
         this._currentUser.next(user);
         this.readySubject.next(true);
       });
+
+      // 2. Cada vez que Firebase renueve el token, lo persistimos
+      onIdTokenChanged(this.auth, user => {
+        if (user) {
+          user.getIdToken()
+            .then(t => this.persistToken(t))
+            .catch(e => console.warn('Error refreshing token:', e));
+        }
+      });
     } else {
       // SSR: marcamos listo para que no bloquee el isStable
       this.readySubject.next(true);
@@ -81,10 +92,10 @@ export class AuthService {
 
   private buildHeaders(includeAuth = false): HttpHeaders {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (includeAuth) {
-      if (!this.idToken) throw new Error('No estás autenticado');
+    if (includeAuth && this.idToken) {
       headers = headers.set('Authorization', `Bearer ${this.idToken}`);
     }
+    // si includeAuth===true pero no hay token, devolvemos headers sin Authorization
     return headers;
   }
 
@@ -144,6 +155,7 @@ export class AuthService {
 
   /** Cierra sesión */
   logout(): void {
+    clearInterval(this.refreshIntervalId);
     this.idToken = null;
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(this.STORAGE_KEY);

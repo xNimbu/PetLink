@@ -29,6 +29,11 @@
             <small class="text-muted">{{
               post.timestamp | date : "short"
             }}</small>
+            <!-- nombre de mascota -->
+            <div *ngIf="post.pet_id" class="d-flex align-items-center mt-1">
+              <img *ngIf="post.petPhoto" [src]="post.petPhoto" alt="Foto de mascota" class="rounded-circle me-1" width="24" height="24" />
+              <small class="text-primary" *ngIf="post.petName">{{ post.petName }}</small>
+            </div>
           </div>
         </div>
 

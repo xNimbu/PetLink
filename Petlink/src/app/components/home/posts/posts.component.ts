@@ -1,14 +1,18 @@
 // src/app/components/home/posts/posts.component.ts
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProfileService, Post, Profile } from '../../../services/profile/profile.service';
-import { AuthService }    from '../../../services/auth/auth.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { Output, EventEmitter } from '@angular/core';
+import { filter, first, firstValueFrom, from, Subscription, switchMap } from 'rxjs';
 
 interface DisplayPost extends Post {
   username: string;
   userAvatar: string;
+  pet_id?: string;
+  petName?: string;
+  petPhoto?: string;
 }
 
 @Component({
@@ -27,36 +31,52 @@ export class PostsComponent implements OnInit {
   loading = true;
   errorMsg = '';
 
+  private subscriptions = new Subscription();
+
   /** IDs de los posts que el usuario ha marcado con “like” */
   likedPostIds = new Set<string>();
 
-  private profileService = inject(ProfileService);
-  private authService = inject(AuthService);
+  constructor(
+    private profileService: ProfileService,
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
-  /* --------------------- CICLO DE VIDA ---------------------------------- */
   ngOnInit(): void {
-    this.authService.ready$.subscribe(isReady => {
-      if (isReady) {
-        this.initFeed();
-      }
-    });
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.initFeed();
   }
 
-  /* --------------------- FLUJO PRINCIPAL -------------------------------- */
-  private initFeed(): void {
-    this.profileService.postCreated$.subscribe(() => this.loadPosts());
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 
-    this.profileService.getProfile().subscribe({
-      next: profile => {
-        this.user = profile;
-        this.loadPosts();
-      },
-      error: err => {
-        console.error('Error cargando perfil', err);
-        this.errorMsg = 'No se pudo cargar tu perfil.';
-        this.loading = false;
-      }
-    });
+  private initFeed(): void {
+    // Re-cargar posts cuando se crea uno nuevo
+    this.subscriptions.add(
+      this.profileService.postCreated$.subscribe(() => this.loadPosts())
+    );
+
+    // Esperar a que AuthService esté listo y luego obtener perfil
+    this.subscriptions.add(
+      this.authService.ready$.pipe(
+        filter(ready => ready),
+        first(),
+        switchMap(() => this.profileService.getProfile())
+      ).subscribe({
+        next: profile => {
+          this.user = profile;
+          this.loadPosts();
+        },
+        error: err => {
+          console.error('Error cargando perfil', err);
+          this.errorMsg = 'No se pudo cargar tu perfil.';
+          this.loading = false;
+        }
+      })
+    );
   }
 
 
@@ -69,10 +89,24 @@ export class PostsComponent implements OnInit {
           username: this.user.username,
           userAvatar: this.user.photoURL
         }));
+        this.posts = this.posts.map(post => {
+          if (post.pet_id) {
+            const pet = this.user.pets.find(x => x.id === post.pet_id);
+            if (pet) {
+              return {
+                ...post,
+                petName: pet.name,
+                petPhoto: pet.photoURL
+              };
+            }
+          }
+          return post;
+        });
         this.postsChange.emit(this.posts);
         this.loading = false;
       },
     });
+
   }
 
   /* --------------------- ACCIONES DEL USUARIO -------------------------- */
