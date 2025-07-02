@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, output, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
@@ -63,15 +63,7 @@ export class LoginComponent {
   async onLoginGoogle() {
     this.loading = true;
     try {
-      const data = await this.authService.loginWithGoogle();
-
-      // Aquí ya tienes:
-      // data.profile, data.posts, data.friends, data.pets
-      console.log('Perfil:', data.profile);
-      console.log('Posts:', data.posts);
-      console.log('Friends:', data.friends);
-      console.log('Pets:', data.pets);
-
+      await this.authService.loginWithGoogle();
       this.toastr.success('¡Login con Google exitoso!', 'Bienvenido');
       this.router.navigate(['/home']);
     } catch (err: any) {

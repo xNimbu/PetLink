@@ -1,7 +1,16 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, Input, input, OnInit, Output } from '@angular/core';
-import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { catchError, of } from 'rxjs';
+// src/app/components/profile/profilefeed/profilefeed.component.ts
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  PLATFORM_ID
+} from '@angular/core';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { Subscription, of } from 'rxjs';
+import { catchError, filter, first, switchMap } from 'rxjs/operators';
+
 import { AuthService } from '../../../services/auth/auth.service';
 import { ProfileService } from '../../../services/profile/profile.service';
 import { DetailProfileComponent } from "../detail-profile/detail-profile.component";
@@ -14,81 +23,67 @@ import { Friend } from '../../../models/friend/friend.model';
 @Component({
   selector: 'app-profilefeed',
   standalone: true,
-  imports: [CommonModule, NgbModule, DetailProfileComponent, PostsComponent, AddPostComponent],
+  imports: [
+    CommonModule,
+    NgbModule,
+    DetailProfileComponent,
+    PostsComponent,
+    AddPostComponent
+  ],
   templateUrl: './profilefeed.component.html',
-  styleUrl: './profilefeed.component.scss'
+  styleUrls: ['./profilefeed.component.scss']
 })
-export class ProfilefeedComponent implements OnInit {
+export class ProfilefeedComponent implements OnInit, OnDestroy {
   user!: Profile;
   loading = true;
+  errorMsg = '';
   profileFields: { label: string; value: string }[] = [];
   pets: Pet[] = [];
-  petPhotos: any[] = [];
+  petPhotos: string[] = [];
   friends: Friend[] = [];
 
-  constructor(
-    private authService: AuthService,
-    private profileService: ProfileService,
-  ) { }
+  private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
+  private subs = new Subscription();
 
   ngOnInit(): void {
-    this.loadFriends()
-    this.loadPetPhotosFromProfile()
-    this.profileService.getProfile()
-      .pipe(
-        catchError(err => {
-          console.error('Error al cargar perfil:', err);
-          return of<Profile | null>(null);
-        })
-      )
-      .subscribe(profile => {
-        if (!profile) return;
+    // No ejecutar en SSR
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
 
-        this.user = profile;
-        this.profileFields = [
-          { label: 'Nombre completo', value: this.user.fullName },
-          { label: 'Correo electrónico', value: this.user.email },
-          { label: 'Teléfono', value: this.user.phone },
-          { label: 'Tipo de usuario', value: this.user.role },
-        ];
-        this.pets = profile.pets ?? [];
-      });
+    // Esperar a que AuthService esté listo, luego cargar TODO lo necesario
+    this.subs.add(
+      this.authService.ready$
+        .pipe(
+          filter(ready => ready),
+          first(),
+          switchMap(() => this.profileService.getProfile()),
+          catchError(err => {
+            console.error('Error al cargar perfil:', err);
+            this.errorMsg = 'No se pudo cargar tu perfil.';
+            this.loading = false;
+            return of<Profile | null>(null);
+          })
+        )
+        .subscribe(profile => {
+          if (!profile) return;
+          this.user = profile;
+          this.buildProfileFields();
+          this.pets = profile.pets ?? [];
+          this.petPhotos = (profile.posts ?? [])
+            .filter(p => !!p.photoURL)
+            .map(p => p.photoURL!);
+          this.friends = profile.friends ?? [];
+          this.loading = false;
+        })
+    );
   }
 
-  loadPetPhotosFromProfile(): void {
-    this.profileService.getProfile()
-      .pipe(
-        catchError(err => {
-          console.error('Error al cargar perfil:', err);
-          return of<Profile | null>(null);
-        })
-      )
-      .subscribe(profile => {
-        if (!profile || !profile.posts) {
-          this.petPhotos = [];
-          return;
-        }
-        this.petPhotos = profile.posts
-          .filter(post => !!post.photoURL)
-          .map(post => post.photoURL);
-      });
-  }
-
-  loadFriends(): void {
-    this.profileService.getProfile()
-      .pipe(
-        catchError(err => {
-          console.error('Error al cargar amigos:', err);
-          return of<Profile | null>(null);
-        })
-      )
-      .subscribe(profile => {
-        if (!profile || !profile.friends) {
-          this.friends = [];
-          return;
-        }
-        this.friends = profile.friends
-      });
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   logout(): void {
@@ -96,4 +91,12 @@ export class ProfilefeedComponent implements OnInit {
     window.location.href = '/login';
   }
 
+  private buildProfileFields() {
+    this.profileFields = [
+      { label: 'Nombre completo', value: this.user.fullName },
+      { label: 'Correo electrónico', value: this.user.email },
+      { label: 'Teléfono', value: this.user.phone },
+      { label: 'Tipo de usuario', value: this.user.role }
+    ];
+  }
 }

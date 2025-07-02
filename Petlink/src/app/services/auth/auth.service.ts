@@ -1,11 +1,12 @@
 // src/app/services/auth/auth.service.ts
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Inject, Injectable, Optional, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   Auth,
   authState,
   browserLocalPersistence,
   GoogleAuthProvider,
+  onIdTokenChanged,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -17,20 +18,22 @@ import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
 export interface GoogleLoginResponse {
-  mensaje: string;
-  uid: string;
-  role: string;
-  code: number;
-  profile: any;
-  posts: any[];
-  friends: any[];
-  pets: any[];
+  token: string;
+  profile: {
+    fullName: string;
+    username: string;
+    email: string;
+    phone: string;
+    role: string;
+    photoURL: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private idToken: string | null = null;
   private readonly STORAGE_KEY = 'auth_token';
+  private refreshIntervalId: any;
   _currentUser = new BehaviorSubject<User | null>(null);
 
   /** Emite true cuando ya hay un token válido (incluso tras F5) */
@@ -39,22 +42,39 @@ export class AuthService {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private auth: Auth,
+    @Optional() private auth: Auth,
     private http: HttpClient
   ) {
     // 1️⃣ Carga token de localStorage si existe
-    if (isPlatformBrowser(this.platformId)) {
+    if (this.auth && isPlatformBrowser(this.platformId)) {
+      // 1️⃣ Carga token de localStorage
       const token = localStorage.getItem(this.STORAGE_KEY);
       if (token) {
         this.idToken = token;
       }
-    }
-    setPersistence(this.auth, browserLocalPersistence)
-    .catch(e => console.warn('No se pudo setear persistencia:', e));
-    authState(this.auth).subscribe(user => {
-      this._currentUser.next(user);
+
+      // 2️⃣ Persistencia
+      setPersistence(this.auth, browserLocalPersistence)
+        .catch(e => console.warn('No se pudo setear persistencia:', e));
+
+      // 3️⃣ Escucho cambios de estado
+      authState(this.auth).subscribe(user => {
+        this._currentUser.next(user);
+        this.readySubject.next(true);
+      });
+
+      // 2. Cada vez que Firebase renueve el token, lo persistimos
+      onIdTokenChanged(this.auth, user => {
+        if (user) {
+          user.getIdToken()
+            .then(t => this.persistToken(t))
+            .catch(e => console.warn('Error refreshing token:', e));
+        }
+      });
+    } else {
+      // SSR: marcamos listo para que no bloquee el isStable
       this.readySubject.next(true);
-    });
+    }
   }
 
   get uid(): string | null {
@@ -72,10 +92,10 @@ export class AuthService {
 
   private buildHeaders(includeAuth = false): HttpHeaders {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (includeAuth) {
-      if (!this.idToken) throw new Error('No estás autenticado');
+    if (includeAuth && this.idToken) {
       headers = headers.set('Authorization', `Bearer ${this.idToken}`);
     }
+    // si includeAuth===true pero no hay token, devolvemos headers sin Authorization
     return headers;
   }
 
@@ -103,7 +123,7 @@ export class AuthService {
    * - Autentica en Firebase
    * - Obtiene ID Token
    * - Llama a /login_google/ enviando perfil inicial
-   * - Devuelve GoogleLoginResponse con profile, posts, friends y pets
+   * - Devuelve solo token y perfil mínimo
    */
   async loginWithGoogle(): Promise<GoogleLoginResponse> {
     const provider = new GoogleAuthProvider();
@@ -112,7 +132,7 @@ export class AuthService {
     const token = await result.user.getIdToken();
     this.persistToken(token);
 
-    const perfil = {
+    const profile = {
       fullName: result.user.displayName || '',
       username: result.user.email?.split('@')[0] || '',
       email: result.user.email || '',
@@ -122,19 +142,20 @@ export class AuthService {
     };
 
     const url = `${environment.backendUrl}/login_google/`;
-    const response = await firstValueFrom(
-      this.http.post<GoogleLoginResponse>(
+    await firstValueFrom(
+      this.http.post(
         url,
-        perfil,
+        profile,
         this.httpOptions(true)
       )
     );
 
-    return response;
+    return { token, profile };
   }
 
   /** Cierra sesión */
   logout(): void {
+    clearInterval(this.refreshIntervalId);
     this.idToken = null;
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(this.STORAGE_KEY);

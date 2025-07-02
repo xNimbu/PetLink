@@ -1,7 +1,7 @@
 // src/app/services/profile/profile.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { map, Observable, Subject, tap } from 'rxjs';
+import { firstValueFrom, from, map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { Post, Pet, Profile } from '../../models';
@@ -20,10 +20,18 @@ export class ProfileService {
   ) { }
 
   /** Obtiene el perfil completo */
-  getProfile(): Observable<Profile> {
-    return this.http.get<Profile>(
-      `${this.base}/`,
-      this.auth.getAuthHeaders()        // solo Authorization
+  async getProfile(): Promise<Profile> {
+    // Esperar y obtener un ID token válido (lanza si no hay usuario)
+    const token = await this.auth.getIdToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    return firstValueFrom(
+      this.http.get<Profile>(
+        `${environment.backendUrl}/profile/`,
+        { headers }
+      )
     );
   }
 
@@ -114,14 +122,19 @@ export class ProfileService {
    * Crea un post con imagen mediante FormData (campo "content" + "image"),
    * y emite el evento postCreated$
    */
-  createPostWithImage(formData: FormData): Observable<Post> {
-    const token = this.auth.token!;
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http
-      .post<Post>(`${this.base}/posts/`, formData, { headers })
-      .pipe(
-        tap(p => this.postCreatedSubject.next(p))
-      );
+  createPostWithImage(formData: FormData) {
+    return from(this.auth.getIdToken()).pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({
+          'Authorization': `Bearer ${token}`
+        });
+        return this.http.post(
+          `${environment.backendUrl}/posts/`,
+          formData,
+          { headers }
+        );
+      })
+    );
   }
 
   updatePost(id: string, data: Partial<Post>): Observable<Post> {

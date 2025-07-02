@@ -1,21 +1,28 @@
-import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-
-import { routes } from './app.routes';
+import { provideServerRendering } from '@angular/platform-server';
 import { provideClientHydration } from '@angular/platform-browser';
-import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
-import { environment } from '../environments/environment';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptorsFromDi,
+  HTTP_INTERCEPTORS
+} from '@angular/common/http';
+import {
+  provideFirebaseApp,
+  initializeApp
+} from '@angular/fire/app';
+import { provideAuth, Auth, getAuth } from '@angular/fire/auth';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
-import { AuthInterceptor } from './interceptors/auth.interceptors';
 
+import { routes } from './app.routes';
+import { environment } from '../environments/environment';
+import { AuthInterceptor } from './interceptors/auth.interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
-    provideAuth(() => getAuth()),
+    provideRouter(routes),
     provideHttpClient(
       withFetch(),
       withInterceptorsFromDi()
@@ -25,9 +32,6 @@ export const appConfig: ApplicationConfig = {
       useClass: AuthInterceptor,
       multi: true
     },
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
-    provideClientHydration(),
     importProvidersFrom(
       BrowserAnimationsModule,
       ToastrModule.forRoot({
@@ -35,6 +39,19 @@ export const appConfig: ApplicationConfig = {
         timeOut: 3000,
         preventDuplicates: true
       })
-    )
+    ),
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+
+    // SSR vs Browser
+    ...(typeof window === 'undefined'
+      ? [
+          provideServerRendering(),
+          // para que `@angular/fire/auth` inyecte algo y no falle:
+          provideAuth(() => null as unknown as Auth)
+        ]
+      : [
+          provideClientHydration(),
+          provideAuth(() => getAuth())
+        ])
   ]
 };

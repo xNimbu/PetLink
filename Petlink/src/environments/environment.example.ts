@@ -12,5 +12,6 @@ export const environment = {
     measurementId:     ''
   },
   login: false,
-  backendUrl: 'https://proyectotitulo.onrender.com/api'
+  backendUrl: 'https://proyectotitulo.onrender.com/api',
+  wsUrl: 'wss://proyectotitulo.onrender.com/ws/chat/'
 };

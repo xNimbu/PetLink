@@ -1,14 +1,15 @@
 // src/app/components/home/posts/posts.component.ts
-import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
-import { CommonModule }  from '@angular/common';
-import { FormsModule }   from '@angular/forms';
+import { Component, OnInit, inject, Output, EventEmitter, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
-import { ProfileService }     from '../../../services/profile/profile.service';
-import { AuthService }        from '../../../services/auth/auth.service';
+import { ProfileService } from '../../../services/profile/profile.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { CommentPostService } from '../../../services/commentsPost/comment-post.service';
 
 import { Profile } from '../../../models/profile/profile.model';
-import { Post }    from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
+import { Post } from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
+import { filter, first, Subscription, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-posts',
@@ -25,42 +26,57 @@ export class PostsComponent implements OnInit {
   loading = true;
   errorMsg = '';
 
+  private subscriptions = new Subscription();
+
   /** IDs de los posts que el usuario ha marcado con “like” */
   likedPostIds = new Set<string>();
 
   /** Control de visibilidad y contenido del formulario de comentario */
   commentFormVisible: Record<string, boolean> = {};
-  newComment:        Record<string, string>  = {};
+  newComment: Record<string, string> = {};
 
-  private profileService   = inject(ProfileService);
-  private authService      = inject(AuthService);
-  private commentService   = inject(CommentPostService);
+  private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  private commentService = inject(CommentPostService);
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
   ngOnInit(): void {
-    this.authService.ready$.subscribe(isReady => {
-      if (isReady) {
-        this.initFeed();
-      }
-    });
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.initFeed();
   }
 
-  /** 1) Carga el perfil, 2) carga los posts con sus comentarios anidados */
-  private initFeed(): void {
-    // Si se crea un post, volvemos a cargar
-    this.profileService.postCreated$.subscribe(() => this.loadPosts());
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 
-    // Primero perfil → luego posts
-    this.profileService.getProfile().subscribe({
-      next: profile => {
-        this.user = profile;
-        this.loadPosts();
-      },
-      error: err => {
-        console.error('Error cargando perfil', err);
-        this.errorMsg = 'No se pudo cargar tu perfil.';
-        this.loading = false;
-      }
-    });
+  private initFeed(): void {
+    // Re-cargar posts cuando se crea uno nuevo
+    this.subscriptions.add(
+      this.profileService.postCreated$.subscribe(() => this.loadPosts())
+    );
+
+    // Esperar a que AuthService esté listo y luego obtener perfil
+    this.subscriptions.add(
+      this.authService.ready$.pipe(
+        filter(ready => ready),
+        first(),
+        switchMap(() => this.profileService.getProfile())
+      ).subscribe({
+        next: profile => {
+          this.user = profile;
+          this.loadPosts();
+        },
+        error: err => {
+          console.error('Error cargando perfil', err);
+          this.errorMsg = 'No se pudo cargar tu perfil.';
+          this.loading = false;
+        }
+      })
+    );
   }
 
   /** Trae todos los posts (incluyen comments, pet_id, etc.) desde el backend */
@@ -71,7 +87,7 @@ export class PostsComponent implements OnInit {
         this.posts = data.map(p => ({
           ...p,
           // Datos de usuario para mostrar
-          username:   this.user.username,
+          username: this.user.username,
           userAvatar: this.user.photoURL,
 
           // Nombre de la mascota si pet_id está presente
@@ -82,7 +98,6 @@ export class PostsComponent implements OnInit {
           // Aseguramos que comments exista (viene anidado desde el backend)
           comments: p.comments ?? []
         }));
-
         this.postsChange.emit(this.posts);
         this.loading = false;
       },
@@ -91,6 +106,7 @@ export class PostsComponent implements OnInit {
         this.loading = false;
       }
     });
+
   }
 
   /** Alterna el estado de “like” SOLO en el front-end */
@@ -133,9 +149,9 @@ export class PostsComponent implements OnInit {
         // Creamos el objeto comment con la respuesta
         const now = new Date().toISOString();
         const comment = {
-          id:        (res as any).id || '',   // ajusta según tu modelo
-          userId:    this.user.uid,
-          username:  this.user.username,
+          id: (res as any).id || '',   // ajusta según tu modelo
+          userId: this.user.uid,
+          username: this.user.username,
           message,
           timestamp: now
         };
@@ -147,7 +163,7 @@ export class PostsComponent implements OnInit {
         }
 
         // Limpiamos formulario
-        this.newComment[postId]        = '';
+        this.newComment[postId] = '';
         this.commentFormVisible[postId] = false;
       },
       error: err => console.error('Error al enviar comentario', err)

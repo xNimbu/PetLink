@@ -42,5 +42,4 @@ testem.log
 Thumbs.db
 
 /src/environments/environment.ts
-/Petlink/src/enviroments/environment.ts
 .env

@@ -1,10 +1,11 @@
 <div class="bg-white rounded-3 shadow-sm p-3 mb-4 w-100">
-  <!-- ▸ VISTA COLAPSADA -->
-  <ng-container *ngIf="!showForm">
+
+  <!-- ▸ VISTA COLAPSADA ---------------------------------------------------- -->
+  <ng-container *ngIf="user && !showForm">
     <input
       type="text"
       class="form-control rounded-pill mb-2"
-      placeholder="¿Qué estás pensando, {{ user?.fullName }}?"
+      placeholder="¿Qué estás pensando, {{ user.fullName }}?"
       (focus)="openForm()"
       (click)="openForm()"
       readonly

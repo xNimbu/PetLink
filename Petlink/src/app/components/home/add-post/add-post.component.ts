@@ -1,10 +1,11 @@
 // src/app/components/home/add-post/add-post.component.ts
-
-import { Component, Output, EventEmitter, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Output, EventEmitter, inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProfileService } from '../../../services/profile/profile.service';
-import { Pet } from '../../../models';
+import { Pet, Profile } from '../../../models';
+import { AuthService } from '../../../services/auth/auth.service';
+import { catchError, filter, first, switchMap, of } from 'rxjs';
 
 @Component({
   selector: 'app-add-post',
@@ -24,36 +25,54 @@ export class AddPostComponent {
   pets: Pet[] = [];
   selectedPet: Pet | null = null;
 
-  user: any;
+  user!: Profile;
   profileFields: { label: string, value: string }[] = [];
 
   private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
-    this.profileService.getProfile()
-      .subscribe(profile => {
-        if (!profile) return;
-        this.user = profile;
-        // ...
-      });
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
 
-    // carga la lista de mascotas
-    this.profileService.listPets()
-      .subscribe(resp => this.pets = resp.pets);
+    this.authService.ready$
+      .pipe(
+        filter(ready => ready),
+        first(),
+        switchMap(() => this.profileService.getProfile()),
+        catchError(err => {
+          console.error('Error cargando perfil', err);
+          return of<Profile | null>(null);
+        })
+      )
+      .subscribe(profile => {
+        if (!profile) {
+          return;
+        }
+        this.user = profile;
+        this.profileFields = [
+          { label: 'Nombre completo',      value: profile.fullName },
+          { label: 'Correo electrónico',   value: profile.email },
+          { label: 'Teléfono',             value: profile.phone },
+          { label: 'Tipo de usuario',      value: profile.role }
+        ];
+      });
   }
 
-  openForm() {
+  openForm(): void {
     this.showForm = true;
   }
 
-  cancel() {
+  cancel(): void {
     this.showForm = false;
     this.postContent = '';
     this.selectedFile = null;
     this.selectedPet = null;
   }
 
-  onFileSelected(event: Event) {
+  onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedFile = input.files?.[0] ?? null;
   }
@@ -62,7 +81,7 @@ export class AddPostComponent {
     this.selectedFile = null;
   }
 
-  submitPost() {
+  submitPost(): void {
     const text = this.postContent.trim();
     if (!text && !this.selectedFile) return;
 
@@ -84,5 +103,4 @@ export class AddPostComponent {
       error: err => console.error('Error creando post', err)
     });
   }
-
 }
