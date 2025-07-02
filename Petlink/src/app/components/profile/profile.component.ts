@@ -5,8 +5,9 @@ import { catchError, of } from 'rxjs';
 
 import { AddEditPetModalComponent } from './add-edit-pet/add-edit-pet.component';
 import { EditComponent } from './edit/edit.component';
-import { ProfileService, Profile, Pet } from '../../services/profile/profile.service';
+import { ProfileService } from '../../services/profile/profile.service';
 import { AuthService } from '../../services/auth/auth.service';
+import { Pet, Profile } from '../../models';
 
 @Component({
   selector: 'app-profile',

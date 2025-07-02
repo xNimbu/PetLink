@@ -3,15 +3,13 @@ import { Component, inject, Input, input, OnInit, Output } from '@angular/core';
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../services/auth/auth.service';
-import { ProfileService, Profile, Pet, Post, Friend } from '../../../services/profile/profile.service';
+import { ProfileService } from '../../../services/profile/profile.service';
 import { DetailProfileComponent } from "../detail-profile/detail-profile.component";
 import { PostsComponent } from "../../home/posts/posts.component";
 import { AddPostComponent } from '../../home/add-post/add-post.component';
-
-interface DisplayPost extends Post {
-  username: string;
-  userAvatar: string;
-}
+import { Profile } from '../../../models/profile/profile.model';
+import { Pet } from '../../../models/pet/pet.model';
+import { Friend } from '../../../models/friend/friend.model';
 
 @Component({
   selector: 'app-profilefeed',
