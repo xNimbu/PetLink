@@ -1,5 +1,3 @@
-<!-- src/app/components/home/add-post/add-post.component.html -->
-
 <div class="bg-white rounded-3 shadow-sm p-3 mb-4 w-100">
 
   <!-- ▸ VISTA COLAPSADA ---------------------------------------------------- -->
@@ -12,17 +10,41 @@
       (click)="openForm()"
       readonly
     />
-
     <div class="d-flex gap-3 mt-2 small text-muted">
       <span class="cursor-pointer d-inline-flex align-items-center" (click)="openForm()">
-        <i class="bi bi-image me-1"></i>Foto
+        <i class="bi bi-image me-1"></i> Foto
       </span>
     </div>
   </ng-container>
 
-  <!-- ▸ FORMULARIO EXPANDIDO ---------------------------------------------- -->
+  <!-- ▸ FORMULARIO EXPANDIDO -->
   <ng-container *ngIf="showForm">
-    <!-- Contenido -->
+<!-- selector de mascota -->
+<div class="mb-2">
+  <label class="form-label">Publicar como:</label>
+  <div class="d-flex align-items-center gap-2">
+    <select
+      class="form-select w-auto"
+      [(ngModel)]="selectedPet"
+    >
+      <option [ngValue]="null">— Seleccione mascota —</option>
+      <option *ngFor="let pet of pets" [ngValue]="pet">
+        {{ pet.name }}
+      </option>
+    </select>
+
+    <!-- img con *ngIf y safe-navigation -->
+    <img
+      *ngIf="selectedPet"
+      [src]="selectedPet.photoURL"
+      [alt]="selectedPet.name"
+      class="rounded-circle"
+      width="40" height="40"
+    />
+  </div>
+</div>
+
+    <!-- ► Contenido del post -->
     <textarea
       class="form-control mb-2"
       rows="4"
@@ -31,21 +53,31 @@
       autofocus
     ></textarea>
 
-    <!-- Barra de acciones -->
+    <!-- ► Barra de acciones -->
     <div class="d-flex align-items-center justify-content-between gap-3">
-
       <!-- ● Grupo IZQUIERDO: agregar / quitar foto -->
       <div class="d-flex align-items-center gap-2">
-        <!-- Botón-icono que abre el selector -->
+        <!-- label cambia según haya archivo o no -->
         <label
+          *ngIf="!selectedFile"
           for="newPostImage"
           class="btn btn-light border-0 d-inline-flex align-items-center p-2"
           style="cursor: pointer;"
         >
-          <span><i class="bi bi-image fs-4"></i> Foto</span>
+          <i class="bi bi-image fs-4"></i>
+          <span class="ms-1">Foto</span>
         </label>
 
-        <!-- Input real (oculto) -->
+        <label
+          *ngIf="selectedFile"
+          for="newPostImage"
+          class="btn btn-light border d-inline-flex align-items-center p-2"
+          style="cursor: pointer;"
+          (click)="removeFile()"
+        >
+          <i class="bi bi-x-lg fs-4"></i>
+        </label>
+
         <input
           id="newPostImage"
           type="file"
@@ -53,15 +85,6 @@
           class="d-none"
           (change)="onFileSelected($event)"
         />
-
-        <!-- Botón “Quitar” -->
-        <button
-          *ngIf="selectedFile"
-          class="btn btn-light border d-inline-flex align-items-center"
-          (click)="removeFile()"
-        >
-          <i class="bi bi-x-lg me-1"></i>Quitar
-        </button>
       </div>
 
       <!-- ● Grupo DERECHO: cancelar / publicar -->
@@ -75,8 +98,6 @@
           Publicar
         </button>
       </div>
-
     </div>
   </ng-container>
-
 </div>

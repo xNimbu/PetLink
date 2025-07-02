@@ -2,7 +2,8 @@
 import { Component, Output, EventEmitter, inject, PLATFORM_ID, OnInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProfileService, Profile } from '../../../services/profile/profile.service';
+import { ProfileService } from '../../../services/profile/profile.service';
+import { Pet, Profile } from '../../../models';
 import { AuthService } from '../../../services/auth/auth.service';
 import { catchError, filter, first, switchMap, of } from 'rxjs';
 
@@ -13,15 +14,19 @@ import { catchError, filter, first, switchMap, of } from 'rxjs';
   templateUrl: './add-post.component.html',
   styleUrls: ['./add-post.component.scss']
 })
-export class AddPostComponent implements OnInit {
+export class AddPostComponent {
   @Output() postCreated = new EventEmitter<void>();
 
   showForm = false;
   postContent = '';
   selectedFile: File | null = null;
 
+  // ← aquí declare tus propiedades de mascotas
+  pets: Pet[] = [];
+  selectedPet: Pet | null = null;
+
   user!: Profile;
-  profileFields: { label: string; value: string }[] = [];
+  profileFields: { label: string, value: string }[] = [];
 
   private profileService = inject(ProfileService);
   private authService = inject(AuthService);
@@ -64,13 +69,12 @@ export class AddPostComponent implements OnInit {
     this.showForm = false;
     this.postContent = '';
     this.selectedFile = null;
+    this.selectedPet = null;
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedFile = input.files && input.files.length
-      ? input.files[0]
-      : null;
+    this.selectedFile = input.files?.[0] ?? null;
   }
 
   removeFile(): void {
@@ -79,15 +83,17 @@ export class AddPostComponent implements OnInit {
 
   submitPost(): void {
     const text = this.postContent.trim();
-    if (!text && !this.selectedFile) {
-      return;
-    }
+    if (!text && !this.selectedFile) return;
 
     const formData = new FormData();
     formData.append('content', text);
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);
     }
+    if (this.selectedPet) {
+      formData.append('pet_id', this.selectedPet.id);
+    }
+    
 
     this.profileService.createPostWithImage(formData).subscribe({
       next: () => {

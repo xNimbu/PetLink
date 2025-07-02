@@ -5,10 +5,11 @@ import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription, of } from 'rxjs';
 import { catchError, filter, first, switchMap } from 'rxjs/operators';
 
-import { ProfileService, Profile, Pet } from '../../services/profile/profile.service';
-import { AuthService } from '../../services/auth/auth.service';
 import { AddEditPetModalComponent } from './add-edit-pet/add-edit-pet.component';
 import { EditComponent } from './edit/edit.component';
+import { ProfileService } from '../../services/profile/profile.service';
+import { AuthService } from '../../services/auth/auth.service';
+import { Pet, Profile } from '../../models';
 
 @Component({
   selector: 'app-profile',

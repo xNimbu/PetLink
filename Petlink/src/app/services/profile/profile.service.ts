@@ -4,43 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, from, map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
-
-
-
-export interface Pet {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  type: string;
-  photoURL: string;
-}
-
-export interface Post {
-  timestamp: string;
-  content: string;
-  photoURL?: string;
-  id: string;
-}
-
-export interface Friend {
-  uid: string;
-  username: string;
-  avatar: string;
-  addedAt: string;
-}
-
-export interface Profile {
-  fullName: string;
-  username: string;
-  email: string;
-  phone: string;
-  role: string;
-  photoURL: string;
-  pets: Pet[];
-  posts: Post[];
-  friends: Friend[];
-}
+import { Post, Pet, Profile } from '../../models';
 
 @Injectable({
   providedIn: 'root'
@@ -118,20 +82,23 @@ export class ProfileService {
   getUserPosts(): Observable<Post[]> {
     return this.http
       .get<{
-        posts: Array<{ id: string; content: string; photoURL: string; timestamp: string, pet_id?: string }>;
+        posts: Post[];
       }>(
         `${this.base}/posts/`,
         this.auth.getAuthHeaders()
       )
       .pipe(
+        tap(resp => console.log('🔍 API /posts/ resp:', resp)),
         map(response =>
           response.posts.map(raw => ({
             id: raw.id,
             content: raw.content,
             photoURL: raw.photoURL,
             timestamp: raw.timestamp,
-            pet_id: raw.pet_id
+            pet_id: raw.pet_id,
+            comments: raw.comments
           }))
+
         )
       );
   }
@@ -185,3 +152,4 @@ export class ProfileService {
     );
   }
 }
+

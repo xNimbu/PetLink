@@ -12,17 +12,13 @@ import { Subscription, of } from 'rxjs';
 import { catchError, filter, first, switchMap } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth/auth.service';
-import {
-  ProfileService,
-  Profile,
-  Pet,
-  Post,
-  Friend
-} from '../../../services/profile/profile.service';
-
+import { ProfileService } from '../../../services/profile/profile.service';
 import { DetailProfileComponent } from "../detail-profile/detail-profile.component";
 import { PostsComponent } from "../../home/posts/posts.component";
 import { AddPostComponent } from '../../home/add-post/add-post.component';
+import { Profile } from '../../../models/profile/profile.model';
+import { Pet } from '../../../models/pet/pet.model';
+import { Friend } from '../../../models/friend/friend.model';
 
 @Component({
   selector: 'app-profilefeed',
