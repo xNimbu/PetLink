@@ -77,12 +77,9 @@ export class AddEditPetModalComponent {
 
   private uploadPetPhoto(file: File): Promise<string> {
 
-    /* Simulación */
-    return new Promise(resolve => {
-      setTimeout(() => {
-        this.uploading = false;
-        resolve(this.previewUrl || this.form.value.photoURL);
-      }, 1000);
-    });
+    // Antes simulábamos espera con un setTimeout que demoraba 1s
+    // Ahora resolvemos inmediatamente para agilizar la carga
+    this.uploading = false;
+    return Promise.resolve(this.previewUrl || this.form.value.photoURL);
   }
 }

@@ -52,6 +52,8 @@ export class AuthService {
       if (token) {
         this.idToken = token;
       }
+      // Emitimos ready tan pronto como se recupera el token
+      this.readySubject.next(true);
 
       // 2️⃣ Persistencia
       setPersistence(this.auth, browserLocalPersistence)
