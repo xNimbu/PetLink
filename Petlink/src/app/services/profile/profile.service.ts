@@ -29,7 +29,7 @@ export class ProfileService {
     });
     return firstValueFrom(
       this.http.get<Profile>(
-        `${environment.backendUrl}/profile/`,
+        `${this.base}/`,
         { headers }
       )
     );
@@ -129,7 +129,7 @@ export class ProfileService {
           'Authorization': `Bearer ${token}`
         });
         return this.http.post(
-          `${environment.backendUrl}/posts/`,
+          `${this.base}/posts/`,
           formData,
           { headers }
         );

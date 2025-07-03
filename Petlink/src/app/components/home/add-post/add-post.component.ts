@@ -37,6 +37,24 @@ export class AddPostComponent {
       return;
     }
 
+    this.profileService.listPets()
+      .pipe(
+      catchError(err => {
+        console.error('Error cargando mascotas', err);
+        return of<Pet[]>([]);
+      })
+      )
+      .subscribe(pets => {
+        if (Array.isArray(pets)) {
+          this.pets = pets;
+        } else if (pets && Array.isArray((pets as any).pets)) {
+          this.pets = (pets as any).pets;
+        } else {
+          this.pets = [];
+        }
+      });
+
+
     this.authService.ready$
       .pipe(
         filter(ready => ready),
@@ -93,7 +111,6 @@ export class AddPostComponent {
     if (this.selectedPet) {
       formData.append('pet_id', this.selectedPet.id);
     }
-    
 
     this.profileService.createPostWithImage(formData).subscribe({
       next: () => {
