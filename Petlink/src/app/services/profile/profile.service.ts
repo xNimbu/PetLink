@@ -88,7 +88,6 @@ export class ProfileService {
         this.auth.getAuthHeaders()
       )
       .pipe(
-        tap(resp => console.log('🔍 API /posts/ resp:', resp)),
         map(response =>
           response.posts.map(raw => ({
             id: raw.id,
