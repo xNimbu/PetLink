@@ -7,12 +7,14 @@ import {
   inject,
   PLATFORM_ID
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription, of } from 'rxjs';
 import { catchError, filter, first, switchMap } from 'rxjs/operators';
 
 import { AuthService } from '../../services/auth/auth.service';
 import { ProfileService } from '../../services/profile/profile.service';
+import { FriendService } from '../../services/friends/friend.service';
 import { DetailProfileComponent } from "./detail-profile/detail-profile.component";
 import { PostsComponent } from "../home/posts/posts.component";
 import { AddPostComponent } from '../home/add-post/add-post.component';
@@ -41,9 +43,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   pets: Pet[] = [];
   petPhotos: string[] = [];
   friends: Friend[] = [];
+  isOwnProfile = true;
+  isFriend = false;
 
   private profileService = inject(ProfileService);
   private authService = inject(AuthService);
+  private friendService = inject(FriendService);
+  private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   private subs = new Subscription();
 
@@ -60,10 +66,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
         .pipe(
           filter(ready => ready),
           first(),
-          switchMap(() => this.profileService.getProfile()),
+          switchMap(() => {
+            const username = this.route.snapshot.paramMap.get('username');
+            const uidParam = this.route.snapshot.paramMap.get('uid');
+            if (username) {
+              return this.profileService.getProfileByUsername(username);
+            }
+            if (uidParam) {
+              return this.profileService.getPublicProfile(uidParam);
+            }
+            return this.profileService.getProfile();
+          }),
           catchError(err => {
             console.error('Error al cargar perfil:', err);
-            this.errorMsg = 'No se pudo cargar tu perfil.';
+            this.errorMsg = 'No se pudo cargar el perfil.';
             this.loading = false;
             return of<Profile | null>(null);
           })
@@ -71,12 +87,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
         .subscribe(profile => {
           if (!profile) return;
           this.user = profile;
+          this.isOwnProfile = profile.uid === this.authService.uid;
           this.buildProfileFields();
           this.pets = profile.pets ?? [];
           this.petPhotos = (profile.posts ?? [])
             .filter(p => !!p.photoURL)
             .map(p => p.photoURL!);
           this.friends = profile.friends ?? [];
+          if (!this.isOwnProfile) {
+            this.friendService.list().subscribe(resp => {
+              this.isFriend = resp.friends.some(f => f.uid === profile.uid);
+            });
+          }
           this.loading = false;
         })
     );
@@ -89,6 +111,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
     window.location.href = '/login';
+  }
+
+  addFriend(): void {
+    if (!this.user) return;
+    this.friendService.add(this.user.uid).subscribe(() => {
+      this.isFriend = true;
+    });
   }
 
   private buildProfileFields() {

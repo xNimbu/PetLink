@@ -1,5 +1,5 @@
 // src/app/components/home/posts/posts.component.ts
-import { Component, OnInit, inject, Output, EventEmitter, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, inject, Output, EventEmitter, Inject, PLATFORM_ID, Input } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -21,6 +21,12 @@ import { filter, first, Subscription, switchMap } from 'rxjs';
 })
 export class PostsComponent implements OnInit {
   @Output() postsChange = new EventEmitter<Post[]>();
+
+  /** UID del perfil del cual mostrar los posts. Si es null se usan los del usuario actual */
+  @Input() uid: string | null = null;
+
+  /** Indica si se muestran los posts del propio usuario */
+  isOwnProfile = true;
 
   posts: Post[] = [];
   user!: Profile;
@@ -56,17 +62,26 @@ export class PostsComponent implements OnInit {
   }
 
   private initFeed(): void {
-    // Re-cargar posts cuando se crea uno nuevo
-    this.subscriptions.add(
-      this.postsService.postCreated$.subscribe(() => this.loadPosts())
-    );
+    // Re-cargar posts cuando se crea uno nuevo solo si es el propio perfil
+    if (!this.uid || this.uid === this.authService.uid) {
+      this.subscriptions.add(
+        this.postsService.postCreated$.subscribe(() => this.loadPosts())
+      );
+    }
 
     // Esperar a que AuthService esté listo y luego obtener perfil
     this.subscriptions.add(
       this.authService.ready$.pipe(
         filter(ready => ready),
         first(),
-        switchMap(() => this.profileService.getProfile())
+        switchMap(() => {
+          if (this.uid && this.uid !== this.authService.uid) {
+            this.isOwnProfile = false;
+            return this.profileService.getPublicProfile(this.uid);
+          }
+          this.isOwnProfile = true;
+          return this.profileService.getProfile();
+        })
       ).subscribe({
         next: profile => {
           this.user = profile;
@@ -84,7 +99,10 @@ export class PostsComponent implements OnInit {
   /** Trae todos los posts (incluyen comments, likes, etc.) desde el backend */
   private loadPosts(): void {
     this.loading = true;
-    this.postsService.getUserPosts().subscribe({
+    const obs = this.isOwnProfile
+      ? this.postsService.getUserPosts()
+      : this.postsService.getPostsByUid(this.uid!);
+    obs.subscribe({
       next: data => {
         this.likedPostIds.clear();
         this.posts = data.map(p => {
@@ -142,6 +160,7 @@ export class PostsComponent implements OnInit {
 
   /** Elimina un post y limpia estado local */
   public deletePost(id: string): void {
+    if (!this.isOwnProfile) return;
     this.postsService.deletePost(id).subscribe({
       next: () => {
         this.posts = this.posts.filter(p => p.id !== id);
