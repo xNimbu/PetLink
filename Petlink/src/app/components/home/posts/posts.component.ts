@@ -4,6 +4,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { ProfileService } from '../../../services/profile/profile.service';
+import { PostsService } from '../../../services/posts/posts.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { CommentPostService } from '../../../services/commentsPost/comment-post.service';
 
@@ -36,6 +37,7 @@ export class PostsComponent implements OnInit {
   newComment: Record<string, string> = {};
 
   private profileService = inject(ProfileService);
+  private postsService = inject(PostsService);
   private authService = inject(AuthService);
   private commentService = inject(CommentPostService);
   constructor(
@@ -56,7 +58,7 @@ export class PostsComponent implements OnInit {
   private initFeed(): void {
     // Re-cargar posts cuando se crea uno nuevo
     this.subscriptions.add(
-      this.profileService.postCreated$.subscribe(() => this.loadPosts())
+      this.postsService.postCreated$.subscribe(() => this.loadPosts())
     );
 
     // Esperar a que AuthService esté listo y luego obtener perfil
@@ -82,7 +84,7 @@ export class PostsComponent implements OnInit {
   /** Trae todos los posts (incluyen comments, pet_id, etc.) desde el backend */
   private loadPosts(): void {
     this.loading = true;
-    this.profileService.getUserPosts().subscribe({
+    this.postsService.getUserPosts().subscribe({
       next: data => {
         this.posts = data.map(p => ({
           ...p,
@@ -125,7 +127,7 @@ export class PostsComponent implements OnInit {
 
   /** Elimina un post y limpia estado local */
   public deletePost(id: string): void {
-    this.profileService.deletePost(id).subscribe({
+    this.postsService.deletePost(id).subscribe({
       next: () => {
         this.posts = this.posts.filter(p => p.id !== id);
         this.likedPostIds.delete(id);

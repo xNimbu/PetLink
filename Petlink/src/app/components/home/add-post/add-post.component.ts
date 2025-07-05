@@ -3,6 +3,8 @@ import { Component, Output, EventEmitter, inject, PLATFORM_ID, OnInit } from '@a
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProfileService } from '../../../services/profile/profile.service';
+import { PetsService } from '../../../services/pets/pets.service';
+import { PostsService } from '../../../services/posts/posts.service';
 import { Pet, Profile } from '../../../models';
 import { AuthService } from '../../../services/auth/auth.service';
 import { catchError, filter, first, switchMap, of } from 'rxjs';
@@ -29,6 +31,8 @@ export class AddPostComponent {
   profileFields: { label: string, value: string }[] = [];
 
   private profileService = inject(ProfileService);
+  private petsService = inject(PetsService);
+  private postsService = inject(PostsService);
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
@@ -37,7 +41,7 @@ export class AddPostComponent {
       return;
     }
 
-    this.profileService.listPets()
+    this.petsService.listPets()
       .pipe(
       catchError(err => {
         console.error('Error cargando mascotas', err);
@@ -112,7 +116,7 @@ export class AddPostComponent {
       formData.append('pet_id', this.selectedPet.id);
     }
 
-    this.profileService.createPostWithImage(formData).subscribe({
+    this.postsService.createPostWithImage(formData).subscribe({
       next: () => {
         this.postCreated.emit();
         this.cancel();
