@@ -4,6 +4,7 @@ import { switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FriendService } from '../../../services/friends/friend.service';
 import { ProfileService } from '../../../services/profile/profile.service';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -16,11 +17,13 @@ export class UserProfileComponent {
   uid!: string;
   profile: any;
   isFriend = false;
+  isOwnProfile = false;
 
   constructor(
     private route: ActivatedRoute,
     private friendService: FriendService,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -40,6 +43,7 @@ export class UserProfileComponent {
     ).subscribe(profileData => {
       this.profile = profileData;
       this.uid = profileData.uid || this.uid;
+      this.isOwnProfile = this.authService.uid === this.uid;
       this.friendService.list().subscribe(resp => {
         this.isFriend = resp.friends.some(f => f.uid === this.uid);
       });
@@ -49,6 +53,12 @@ export class UserProfileComponent {
   addFriend() {
     this.friendService.add(this.uid).subscribe(() => {
       this.isFriend = true;
+    });
+  }
+
+  removeFriend() {
+    this.friendService.remove(this.uid).subscribe(() => {
+      this.isFriend = false;
     });
   }
 }

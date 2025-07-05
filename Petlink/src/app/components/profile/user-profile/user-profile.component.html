@@ -1,7 +1,7 @@
-    <div *ngIf="profile">
-      <img [src]="profile.photoURL" width="100">
-      <h2>{{ profile.username }}</h2>
-      <p>{{ profile.fullName }}</p>
-      <button *ngIf="!isFriend" (click)="addFriend()">Agregar amigo</button>
-      <button *ngIf="isFriend" disabled>Ya es amigo</button>
-    </div>
+<div *ngIf="profile">
+  <img [src]="profile.photoURL" width="100">
+  <h2>{{ profile.username }}</h2>
+  <p>{{ profile.fullName }}</p>
+  <button *ngIf="!isOwnProfile && !isFriend" (click)="addFriend()">Agregar amigo</button>
+  <button *ngIf="!isOwnProfile && isFriend" (click)="removeFriend()">Eliminar amigo</button>
+</div>
