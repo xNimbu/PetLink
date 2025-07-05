@@ -1,5 +1,5 @@
 // src/app/components/home/posts/posts.component.ts
-import { Component, OnInit, inject, Output, EventEmitter, Inject, PLATFORM_ID, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, Output, EventEmitter, Inject, PLATFORM_ID, Input } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -19,7 +19,7 @@ import { filter, first, Subscription, switchMap } from 'rxjs';
   templateUrl: './posts.component.html',
   styleUrl: './posts.component.scss'
 })
-export class PostsComponent implements OnInit {
+export class PostsComponent implements OnInit, OnChanges {
   @Output() postsChange = new EventEmitter<Post[]>();
 
   /** UID del perfil del cual mostrar los posts. Si es null se usan los del usuario actual */
@@ -55,6 +55,18 @@ export class PostsComponent implements OnInit {
       return;
     }
     this.initFeed();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['uid'] && !changes['uid'].firstChange) {
+      this.subscriptions.unsubscribe();
+      this.subscriptions = new Subscription();
+      this.posts = [];
+      this.likedPostIds.clear();
+      if (isPlatformBrowser(this.platformId)) {
+        this.initFeed();
+      }
+    }
   }
 
   ngOnDestroy(): void {

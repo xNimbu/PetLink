@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Notification } from '../../models';
 import { NotificationsService } from '../../services/notifications/notifications.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -15,6 +16,7 @@ import { NotificationsService } from '../../services/notifications/notifications
 })
 export class NavbarComponent {
   private notificationsService = inject(NotificationsService);
+  private authService = inject(AuthService);
   showNotifications = false;
   query = '';
   results: Array<{ uid: string; username: string; avatar: string }> = [];
@@ -45,6 +47,13 @@ export class NavbarComponent {
 
   openSettings(): void {
     this.router.navigate(['/settings']);
+  }
+
+  openProfile(): void {
+    const uid = this.authService.uid;
+    if (uid) {
+      this.router.navigate(['/profile', uid]);
+    }
   }
 
   toggleNotifications(event: MouseEvent): void {

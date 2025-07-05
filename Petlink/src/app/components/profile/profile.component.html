@@ -31,8 +31,19 @@
           <!-- <p class="text-muted mb-0">@{{ user.username }}</p> -->
         </div>
         <div class="ms-auto" *ngIf="!isOwnProfile">
-          <button class="btn btn-primary" (click)="addFriend()" [disabled]="isFriend">
-            {{ isFriend ? 'Ya es amigo' : 'Agregar amigo' }}
+          <button
+            *ngIf="!isFriend"
+            class="btn btn-primary"
+            (click)="addFriend()"
+          >
+            Agregar amigo
+          </button>
+          <button
+            *ngIf="isFriend"
+            class="btn btn-danger"
+            (click)="removeFriend()"
+          >
+            Eliminar amigo
           </button>
         </div>
       </div>
