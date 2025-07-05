@@ -43,7 +43,7 @@ export class NavbarComponent {
     this.router.navigate(['/home']);
   }
 
-  openProfile(): void {
+  openSettings(): void {
     this.router.navigate(['/profile']);
   }
 
