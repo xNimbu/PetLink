@@ -44,7 +44,7 @@ export class NavbarComponent {
   }
 
   openSettings(): void {
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/settings']);
   }
 
   toggleNotifications(event: MouseEvent): void {
