@@ -152,7 +152,7 @@ export class PostsComponent implements OnInit, OnChanges {
 
     if (source) {
       source.subscribe({
-        next: data => this.populatePosts(data, profile),
+        next: (data: Post[]) => this.populatePosts(data, profile),
         error: err => {
           console.error('Error cargando posts', err);
           this.loading = false;
@@ -167,7 +167,7 @@ export class PostsComponent implements OnInit, OnChanges {
   private loadFriendsPosts(): void {
     this.loading = true;
     this.postsService.getFriendsPosts().subscribe({
-      next: data => this.populatePosts(data, null),
+      next: (data: Post[]) => this.populatePosts(data, null),
       error: err => {
         console.error('Error cargando posts', err);
         this.loading = false;
@@ -194,8 +194,6 @@ export class PostsComponent implements OnInit, OnChanges {
     });
     this.postsChange.emit(this.posts);
     this.loading = false;
-  }
-
   }
 
   /** Alterna el estado de “like” usando el backend */
