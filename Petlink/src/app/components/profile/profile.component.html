@@ -98,7 +98,7 @@
       </ul>
 
       <!-- Publicaciones  -->
-      <app-posts [uid]="user.uid"></app-posts>
+      <app-posts *ngIf="user" [uid]="user.uid"></app-posts>
     </div>
   </div>
 </div>
