@@ -81,25 +81,31 @@ export class PostsComponent implements OnInit {
     );
   }
 
-  /** Trae todos los posts (incluyen comments, pet_id, etc.) desde el backend */
+  /** Trae todos los posts (incluyen comments, likes, etc.) desde el backend */
   private loadPosts(): void {
     this.loading = true;
     this.postsService.getUserPosts().subscribe({
       next: data => {
-        this.posts = data.map(p => ({
-          ...p,
-          // Datos de usuario para mostrar
-          username: this.user.username,
-          userAvatar: this.user.photoURL,
+        this.likedPostIds.clear();
+        this.posts = data.map(p => {
+          const liked = p.likes?.some(l => l.uid === this.authService.uid);
+          if (liked) this.likedPostIds.add(p.id);
+          return {
+            ...p,
+            // Datos de usuario para mostrar
+            username: this.user.username,
+            userAvatar: this.user.photoURL,
 
-          // Nombre de la mascota si pet_id está presente
-          petName: p.pet_id
-            ? (this.user.pets?.find(x => x.id === p.pet_id)?.name ?? '')
-            : '',
+            // Nombre de la mascota si pet_id está presente
+            petName: p.pet_id
+              ? (this.user.pets?.find(x => x.id === p.pet_id)?.name ?? '')
+              : '',
 
-          // Aseguramos que comments exista (viene anidado desde el backend)
-          comments: p.comments ?? []
-        }));
+            // Aseguramos que comments exista (viene anidado desde el backend)
+            comments: p.comments ?? [],
+            likesCount: p.likesCount ?? 0
+          } as Post;
+        });
         this.postsChange.emit(this.posts);
         this.loading = false;
       },
@@ -111,13 +117,22 @@ export class PostsComponent implements OnInit {
 
   }
 
-  /** Alterna el estado de “like” SOLO en el front-end */
+  /** Alterna el estado de “like” usando el backend */
   public toggleLike(id: string): void {
-    if (this.likedPostIds.has(id)) {
-      this.likedPostIds.delete(id);
-    } else {
-      this.likedPostIds.add(id);
-    }
+    this.postsService.toggleLike(id).subscribe({
+      next: res => {
+        if (res.liked) {
+          this.likedPostIds.add(id);
+        } else {
+          this.likedPostIds.delete(id);
+        }
+        const target = this.posts.find(p => p.id === id);
+        if (target) {
+          target.likesCount = res.count;
+        }
+      },
+      error: err => console.error('Error toggling like', err)
+    });
   }
 
   /** Devuelve true si un post está marcado con “like” */

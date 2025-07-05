@@ -85,7 +85,7 @@
               'bi bi-heart': !isLiked(post.id)
             }"
           ></i>
-          Me gusta
+          Me gusta <span class="ms-1">{{ post.likesCount || 0 }}</span>
         </button>
         <button
           type="button"

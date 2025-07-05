@@ -29,7 +29,9 @@ export class PostsService {
           photoURL: raw.photoURL,
           timestamp: raw.timestamp,
           pet_id: raw.pet_id,
-          comments: raw.comments
+          comments: raw.comments,
+          likes: raw.likes,
+          likesCount: raw.likesCount
         })))
       );
   }
@@ -59,5 +61,17 @@ export class PostsService {
 
   deletePost(id: string): Observable<any> {
     return this.http.delete(`${this.base}/${id}/`, this.auth.getAuthHeaders());
+  }
+
+  /** Obtiene los likes de un post */
+  getLikes(postId: string): Observable<{ count: number; likes: any[] }> {
+    const url = `${environment.backendUrl}/posts/${postId}/likes/`;
+    return this.http.get<{ count: number; likes: any[] }>(url, this.auth.getAuthHeaders());
+  }
+
+  /** Alterna el like de un post */
+  toggleLike(postId: string): Observable<{ liked: boolean; count: number; likes: any[] }> {
+    const url = `${environment.backendUrl}/posts/${postId}/likes/`;
+    return this.http.post<{ liked: boolean; count: number; likes: any[] }>(url, {}, this.auth.getAuthHeaders());
   }
 }

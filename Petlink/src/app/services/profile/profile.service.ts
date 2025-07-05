@@ -33,4 +33,14 @@ export class ProfileService {
   updateProfileForm(formData: FormData): Observable<any> {
     return this.http.post(`${this.base}/`, formData, this.auth.formOptions());
   }
+
+  /** Obtiene un perfil público por UID */
+  getPublicProfile(uid: string): Observable<Profile> {
+    return this.http.get<Profile>(`${this.base}/${uid}/`, this.auth.getAuthHeaders());
+  }
+
+  /** Obtiene un perfil público por nombre de usuario */
+  getProfileByUsername(username: string): Observable<Profile> {
+    return this.http.get<Profile>(`${this.base}/username/${username}/`, this.auth.getAuthHeaders());
+  }
 }
