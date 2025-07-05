@@ -4,10 +4,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
   Auth,
   authState,
-  browserLocalPersistence,
   GoogleAuthProvider,
   onIdTokenChanged,
-  setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
   User,
@@ -16,6 +14,7 @@ import {
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
+import { browserLocalPersistence, setPersistence } from 'firebase/auth';
 
 export interface GoogleLoginResponse {
   token: string;
