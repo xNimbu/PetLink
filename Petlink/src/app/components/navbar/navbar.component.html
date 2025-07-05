@@ -41,10 +41,10 @@
         <button class="btn nav-link p-0" (click)="toggleNotifications($event)">
           <i class="fas fa-bell fa-lg"></i>
           <span
-            *ngIf="unreadCount"
+            *ngIf="unreadCount()"
             class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
           >
-            {{ unreadCount }}
+            {{ unreadCount() }}
           </span>
         </button>
 
@@ -58,7 +58,7 @@
 
           <div class="list-group list-group-flush flex-grow-1 overflow-auto">
             <a
-              *ngFor="let n of notifications"
+              *ngFor="let n of notifications()"
               [routerLink]="n.link || null"
               class="list-group-item d-flex align-items-start"
               [ngClass]="{ unread: !n.read, read: n.read }"
@@ -76,7 +76,7 @@
               </div>
             </a>
             <div
-              *ngIf="!notifications.length"
+              *ngIf="!notifications().length"
               class="list-group-item text-center text-muted py-3"
             >
               No hay notificaciones
