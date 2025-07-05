@@ -69,6 +69,9 @@ export class NavbarComponent {
     event.preventDefault();
     event.stopPropagation();
     this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.notificationsService.fetch();
+    }
   }
 
   /**

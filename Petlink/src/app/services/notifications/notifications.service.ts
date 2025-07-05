@@ -1,9 +1,14 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { filter, first } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Notification } from '../../models';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private readonly _notifications = signal<Notification[]>([]);
+  private base = `${environment.backendUrl}/profile/notifications`;
 
   /** Lista de notificaciones (solo lectura) */
   readonly notifications = this._notifications.asReadonly();
@@ -13,31 +18,39 @@ export class NotificationsService {
     this._notifications().filter(n => !n.read).length
   );
 
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+
   constructor() {
     if (typeof window !== 'undefined') {
-      // Simulación: añadir una notificación cada 15s
-      setInterval(() => this.addFakeNotification(), 15000);
+      this.auth.ready$.pipe(filter(r => r), first()).subscribe(() => this.fetch());
     }
+  }
+
+  /** Obtiene notificaciones del backend */
+  fetch(): void {
+    this.http
+      .get<{ notifications: Notification[] }>(`${this.base}/`, this.auth.getAuthHeaders())
+      .subscribe({
+        next: res => this._notifications.set(res.notifications),
+        error: err => console.error('Error fetching notifications', err)
+      });
   }
 
   /** Marca una notificación como leída */
   markAsRead(target: Notification): void {
-    this._notifications.update(list =>
-      list.map(item =>
-        item.id === target.id ? { ...item, read: true } : item
-      )
-    );
-  }
-
-  private addFakeNotification(): void {
-    const count = this._notifications().length + 1;
-    const n: Notification = {
-      id: Date.now().toString(),
-      username: 'ilusm',
-      avatar: '/assets/images/blacktest.jpg',
-      message: `Notificación ${count}`,
-      read: false
-    };
-    this._notifications.update(list => [n, ...list]);
+    if (!target.id) return;
+    this.http
+      .patch(`${this.base}/${target.id}/`, {}, this.auth.getAuthHeaders())
+      .subscribe({
+        next: () => {
+          this._notifications.update(list =>
+            list.map(item =>
+              item.id === target.id ? { ...item, read: true } : item
+            )
+          );
+        },
+        error: err => console.error('Error marking notification as read', err)
+      });
   }
 }
