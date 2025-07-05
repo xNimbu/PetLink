@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FriendService } from '../../../services/friends/friend.service';
 import { switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { FriendService } from '../../../services/friends/friend.service';
+import { ProfileService } from '../../../services/profile/profile.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -19,21 +19,27 @@ export class UserProfileComponent {
 
   constructor(
     private route: ActivatedRoute,
-    private http: HttpClient,
-    private friendService: FriendService
+    private friendService: FriendService,
+    private profileService: ProfileService
   ) { }
 
   ngOnInit() {
-    // 1) Leer UID de la ruta
     this.route.paramMap.pipe(
       switchMap(params => {
-        this.uid = params.get('uid')!;
-        // 2) Cargar perfil desde tu endpoint /api/profile/
-        return this.http.get<any>(`/api/profile/${this.uid}/`);
+        const username = params.get('username');
+        const uidParam = params.get('uid');
+        if (username) {
+          return this.profileService.getProfileByUsername(username);
+        }
+        if (uidParam) {
+          this.uid = uidParam;
+          return this.profileService.getPublicProfile(uidParam);
+        }
+        throw new Error('No user specified');
       })
     ).subscribe(profileData => {
       this.profile = profileData;
-      // 3) Verificar si ya es amigo
+      this.uid = profileData.uid || this.uid;
       this.friendService.list().subscribe(resp => {
         this.isFriend = resp.friends.some(f => f.uid === this.uid);
       });

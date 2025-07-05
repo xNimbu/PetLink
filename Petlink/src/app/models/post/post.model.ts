@@ -6,7 +6,9 @@ export interface Post {
   id: string;
   username?: string;
   userAvatar?: string;
-  pet_id?: string;     
+  pet_id?: string;
   petName?: string;
-  comments: Comment[]
+  comments: Comment[];
+  likes?: { uid: string; username: string }[];
+  likesCount?: number;
 }
