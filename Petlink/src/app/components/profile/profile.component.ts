@@ -8,6 +8,7 @@ import { catchError, filter, first, switchMap } from 'rxjs/operators';
 import { AddEditPetModalComponent } from './add-edit-pet/add-edit-pet.component';
 import { EditComponent } from './edit/edit.component';
 import { ProfileService } from '../../services/profile/profile.service';
+import { PetsService } from '../../services/pets/pets.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { Pet, Profile } from '../../models';
 
@@ -25,6 +26,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   loading = true;
 
   private profileService = inject(ProfileService);
+  private petsService = inject(PetsService);
   private authService = inject(AuthService);
   private modalService = inject(NgbModal);
   private platformId = inject(PLATFORM_ID);
@@ -78,7 +80,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const modalRef = this.modalService.open(AddEditPetModalComponent);
     modalRef.componentInstance.mode = 'add';
     modalRef.result
-      .then((formData: FormData) => this.profileService.addPet(formData))
+      .then((formData: FormData) => this.petsService.addPet(formData))
       .then(() => this.reloadProfile())
       .catch(() => {});
   }
@@ -88,7 +90,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.pet = pet;
     modalRef.result
-      .then((formData: FormData) => this.profileService.updatePet(pet.id, formData))
+      .then((formData: FormData) => this.petsService.updatePet(pet.id, formData))
       .then(() => this.reloadProfile())
       .catch(() => {});
   }
@@ -96,7 +98,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   deletePet(id: string): void {
     if (!confirm('¿Eliminar esta mascota?')) return;
     this.subs.add(
-      this.profileService.deletePet(id)
+      this.petsService.deletePet(id)
         .subscribe(() => this.reloadProfile())
     );
   }
