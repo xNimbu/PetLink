@@ -22,12 +22,11 @@ export class NotificationsService {
 
   /** Marca una notificación como leída */
   markAsRead(target: Notification): void {
-    this._notifications.mutate(list => {
-      const n = list.find(item => item.id === target.id);
-      if (n) {
-        n.read = true;
-      }
-    });
+    this._notifications.update(list =>
+      list.map(item =>
+        item.id === target.id ? { ...item, read: true } : item
+      )
+    );
   }
 
   private addFakeNotification(): void {

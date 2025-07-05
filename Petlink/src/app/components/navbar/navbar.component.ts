@@ -1,4 +1,4 @@
-import { Component, HostListener, ElementRef } from '@angular/core';
+import { Component, HostListener, ElementRef, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -14,6 +14,7 @@ import { NotificationsService } from '../../services/notifications/notifications
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
+  private notificationsService = inject(NotificationsService);
   showNotifications = false;
   query = '';
   results: Array<{ uid: string; username: string; avatar: string }> = [];
@@ -27,7 +28,6 @@ export class NavbarComponent {
     private router: Router,
     private host: ElementRef,
     private http: HttpClient,
-    private notificationsService: NotificationsService
   ) { }
 
   onSearch() {
