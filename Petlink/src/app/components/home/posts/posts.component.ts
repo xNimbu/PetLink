@@ -1,5 +1,5 @@
 // src/app/components/home/posts/posts.component.ts
-import { Component, OnInit, inject, Output, EventEmitter, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, Output, EventEmitter, Inject, PLATFORM_ID, Input } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -19,11 +19,21 @@ import { filter, first, Subscription, switchMap } from 'rxjs';
   templateUrl: './posts.component.html',
   styleUrl: './posts.component.scss'
 })
-export class PostsComponent implements OnInit {
+export class PostsComponent implements OnInit, OnChanges {
   @Output() postsChange = new EventEmitter<Post[]>();
+
+  /** UID del perfil del cual mostrar los posts. Si es null se usan los del usuario actual */
+  @Input() uid: string | null = null;
+  /** Cuando es true se muestran posts del usuario y sus amigos */
+  @Input() friendsFeed = false;
+
+  /** Indica si se muestran los posts del propio usuario */
+  isOwnProfile = true;
 
   posts: Post[] = [];
   user!: Profile;
+  private viewerUid = '';
+  private viewerUsername = '';
   loading = true;
   errorMsg = '';
 
@@ -48,7 +58,24 @@ export class PostsComponent implements OnInit {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
+    // Datos del usuario actual para comentar
+    this.profileService.getProfile().then(p => {
+      this.viewerUid = p.uid;
+      this.viewerUsername = p.username;
+    }).catch(() => {});
     this.initFeed();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['uid'] && !changes['uid'].firstChange) {
+      this.subscriptions.unsubscribe();
+      this.subscriptions = new Subscription();
+      this.posts = [];
+      this.likedPostIds.clear();
+      if (isPlatformBrowser(this.platformId)) {
+        this.initFeed();
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -56,21 +83,53 @@ export class PostsComponent implements OnInit {
   }
 
   private initFeed(): void {
-    // Re-cargar posts cuando se crea uno nuevo
-    this.subscriptions.add(
-      this.postsService.postCreated$.subscribe(() => this.loadPosts())
-    );
+    // Si es feed de amigos, solo obtenemos el perfil propio una vez
+    if (this.friendsFeed) {
+      this.isOwnProfile = false;
+      this.subscriptions.add(
+        this.authService.ready$.pipe(
+          filter(r => r),
+          first(),
+          switchMap(() => this.profileService.getProfile())
+        ).subscribe({
+          next: profile => {
+            this.user = profile;
+            this.loadFriendsPosts();
+          },
+          error: err => {
+            console.error('Error cargando feed', err);
+            this.errorMsg = 'No se pudo cargar el feed.';
+            this.loading = false;
+          }
+        })
+      );
+      return;
+    }
+
+    // Re-cargar posts cuando se crea uno nuevo solo si es el propio perfil
+    if (!this.uid || this.uid === this.authService.uid) {
+      this.subscriptions.add(
+        this.postsService.postCreated$.subscribe(() => this.loadPosts(this.user))
+      );
+    }
 
     // Esperar a que AuthService esté listo y luego obtener perfil
     this.subscriptions.add(
       this.authService.ready$.pipe(
         filter(ready => ready),
         first(),
-        switchMap(() => this.profileService.getProfile())
+        switchMap(() => {
+          if (this.uid && this.uid !== this.authService.uid) {
+            this.isOwnProfile = false;
+            return this.profileService.getPublicProfile(this.uid);
+          }
+          this.isOwnProfile = true;
+          return this.profileService.getProfile();
+        })
       ).subscribe({
         next: profile => {
           this.user = profile;
-          this.loadPosts();
+          this.loadPosts(profile);
         },
         error: err => {
           console.error('Error cargando perfil', err);
@@ -81,39 +140,61 @@ export class PostsComponent implements OnInit {
     );
   }
 
-  /** Trae todos los posts (incluyen comments, likes, etc.) desde el backend */
-  private loadPosts(): void {
+  /** Trae todos los posts para el perfil actual */
+  private loadPosts(profile: Profile): void {
     this.loading = true;
-    this.postsService.getUserPosts().subscribe({
-      next: data => {
-        this.likedPostIds.clear();
-        this.posts = data.map(p => {
-          const liked = p.likes?.some(l => l.uid === this.authService.uid);
-          if (liked) this.likedPostIds.add(p.id);
-          return {
-            ...p,
-            // Datos de usuario para mostrar
-            username: this.user.username,
-            userAvatar: this.user.photoURL,
+    let source: any;
+    if (this.isOwnProfile) {
+      source = this.postsService.getUserPosts();
+    } else if (this.uid) {
+      source = this.postsService.getPostsByUid(this.uid);
+    }
 
-            // Nombre de la mascota si pet_id está presente
-            petName: p.pet_id
-              ? (this.user.pets?.find(x => x.id === p.pet_id)?.name ?? '')
-              : '',
+    if (source) {
+      source.subscribe({
+        next: data => this.populatePosts(data, profile),
+        error: err => {
+          console.error('Error cargando posts', err);
+          this.loading = false;
+        }
+      });
+    } else {
+      const data = profile.posts ?? [];
+      this.populatePosts(data as Post[], profile);
+    }
+  }
 
-            // Aseguramos que comments exista (viene anidado desde el backend)
-            comments: p.comments ?? [],
-            likesCount: p.likesCount ?? 0
-          } as Post;
-        });
-        this.postsChange.emit(this.posts);
-        this.loading = false;
-      },
+  private loadFriendsPosts(): void {
+    this.loading = true;
+    this.postsService.getFriendsPosts().subscribe({
+      next: data => this.populatePosts(data, null),
       error: err => {
         console.error('Error cargando posts', err);
         this.loading = false;
       }
     });
+  }
+
+  private populatePosts(data: Post[], profile: Profile | null): void {
+    this.likedPostIds.clear();
+    this.posts = data.map(p => {
+      const liked = p.likes?.some(l => l.uid === this.authService.uid);
+      if (liked) this.likedPostIds.add(p.id);
+      const username = p.username ?? profile?.username ?? '';
+      const userAvatar = p.userAvatar ?? profile?.photoURL ?? '';
+      const petName = p.petName ?? (p.pet_id && profile?.pets?.find(x => x.id === p.pet_id)?.name) || '';
+      return {
+        ...p,
+        username,
+        userAvatar,
+        petName,
+        comments: p.comments ?? [],
+        likesCount: p.likesCount ?? 0
+      } as Post;
+    });
+    this.postsChange.emit(this.posts);
+    this.loading = false;
+  }
 
   }
 
@@ -142,6 +223,7 @@ export class PostsComponent implements OnInit {
 
   /** Elimina un post y limpia estado local */
   public deletePost(id: string): void {
+    if (!this.isOwnProfile) return;
     this.postsService.deletePost(id).subscribe({
       next: () => {
         this.posts = this.posts.filter(p => p.id !== id);
@@ -163,12 +245,11 @@ export class PostsComponent implements OnInit {
 
     this.commentService.addComment(postId, message).subscribe({
       next: res => {
-        // Creamos el objeto comment con la respuesta
         const now = new Date().toISOString();
         const comment = {
-          id: (res as any).id || '',   // ajusta según tu modelo
-          userId: this.user.uid,
-          username: this.user.username,
+          id: (res as any).id || '',
+          userId: this.viewerUid,
+          username: this.viewerUsername,
           message,
           timestamp: now
         };
