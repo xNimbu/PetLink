@@ -1,16 +1,10 @@
-import { Component, HostListener, ElementRef } from '@angular/core';
+import { Component, HostListener, ElementRef, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-
-interface Notification {
-  username: string;
-  avatar: string;
-  message: string;
-  link?: string;
-  read: boolean;
-}
+import { Notification } from '../../models';
+import { NotificationsService } from '../../services/notifications/notifications.service';
 
 @Component({
   selector: 'app-navbar',
@@ -20,21 +14,20 @@ interface Notification {
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
+  private notificationsService = inject(NotificationsService);
   showNotifications = false;
   query = '';
   results: Array<{ uid: string; username: string; avatar: string }> = [];
 
-  notifications: Notification[] = [
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'le ha dado like a tu publicación', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'ha compartido una foto tuya', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'ha comentado tu foto', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'le ha dado like a tu publicación', read: false }
-  ];
+  /** Lista reactiva de notificaciones */
+  notifications = this.notificationsService.notifications;
+  /** Contador de no leídas */
+  unreadCount = this.notificationsService.unreadCount;
 
   constructor(
     private router: Router,
     private host: ElementRef,
-    private http: HttpClient
+    private http: HttpClient,
   ) { }
 
   onSearch() {
@@ -67,7 +60,7 @@ export class NavbarComponent {
     event.preventDefault();
     event.stopPropagation();
     if (!notification.read) {
-      notification.read = true;
+      this.notificationsService.markAsRead(notification);
     }
   }
 
@@ -76,9 +69,5 @@ export class NavbarComponent {
     if (!this.host.nativeElement.contains(target)) {
       this.showNotifications = false;
     }
-  }
-
-  get unreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
   }
 }
