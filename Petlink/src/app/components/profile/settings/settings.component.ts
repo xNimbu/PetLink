@@ -80,7 +80,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const modalRef = this.modalService.open(AddEditPetModalComponent);
     modalRef.componentInstance.mode = 'add';
     modalRef.result
-      .then((formData: FormData) => this.petsService.addPet(formData))
+      .then((data: any) => this.petsService.addPet(data))
       .then(() => this.reloadProfile())
       .catch(() => {});
   }
@@ -90,7 +90,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.pet = pet;
     modalRef.result
-      .then((formData: FormData) => this.petsService.updatePet(pet.id, formData))
+      .then((data: any) => this.petsService.updatePet(pet.id, data))
       .then(() => this.reloadProfile())
       .catch(() => {});
   }
