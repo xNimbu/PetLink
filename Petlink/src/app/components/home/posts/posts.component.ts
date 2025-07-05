@@ -152,7 +152,6 @@ export class PostsComponent implements OnInit, OnChanges {
     this.loading = false;
   }
 
-  }
 
   /** Alterna el estado de “like” usando el backend */
   public toggleLike(id: string): void {
