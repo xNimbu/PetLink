@@ -92,7 +92,7 @@ export class PostsComponent implements OnInit {
 
           // Nombre de la mascota si pet_id está presente
           petName: p.pet_id
-            ? (this.user.pets.find(x => x.id === p.pet_id)?.name ?? '')
+            ? (this.user.pets?.find(x => x.id === p.pet_id)?.name ?? '')
             : '',
 
           // Aseguramos que comments exista (viene anidado desde el backend)

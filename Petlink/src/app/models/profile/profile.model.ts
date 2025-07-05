@@ -8,11 +8,11 @@ export interface Profile {
   fullName: string;
   username: string;
   email: string;
-  phone: string;
+  phone?: string;
   role: string;
-  photoURL: string;
-  pets: Pet[];
-  posts: Post[];
-  friends: Friend[];
+  photoURL?: string;
+  pets?: Pet[];
+  posts?: Post[];
+  friends?: Friend[];
   comments?: Comment[]
 }

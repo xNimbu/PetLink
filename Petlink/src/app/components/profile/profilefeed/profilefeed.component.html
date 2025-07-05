@@ -15,11 +15,11 @@
   <div class="container position-relative" style="margin-top: -75px">
     <div class="bg-white rounded-3 shadow-sm p-4">
       <!-- Avatar y datos -->
-      <div class="d-flex align-items-center">
+      <div *ngIf="user" class="d-flex align-items-center">
         <!-- Avatar -->
         <div class="me-4">
           <img
-            [src]="user.photoURL || 'assets/images/default-user.png'"
+            [src]="user.photoURL"
             class="rounded-circle border border-white border-3"
             style="width: 150px; height: 150px; object-fit: cover"
           />

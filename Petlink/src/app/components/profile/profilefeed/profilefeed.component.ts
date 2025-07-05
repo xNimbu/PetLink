@@ -95,7 +95,7 @@ export class ProfilefeedComponent implements OnInit, OnDestroy {
     this.profileFields = [
       { label: 'Nombre completo', value: this.user.fullName },
       { label: 'Correo electrónico', value: this.user.email },
-      { label: 'Teléfono', value: this.user.phone },
+      { label: 'Teléfono', value: this.user.phone? this.user.phone : 'No disponible' },
       { label: 'Tipo de usuario', value: this.user.role }
     ];
   }

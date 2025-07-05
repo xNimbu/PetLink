@@ -73,7 +73,7 @@ export class AddPostComponent {
         this.profileFields = [
           { label: 'Nombre completo',      value: profile.fullName },
           { label: 'Correo electrónico',   value: profile.email },
-          { label: 'Teléfono',             value: profile.phone },
+          { label: 'Teléfono',             value: profile.phone? profile.phone : 'No disponible' },
           { label: 'Tipo de usuario',      value: profile.role }
         ];
       });
