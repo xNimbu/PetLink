@@ -153,7 +153,7 @@ export class PostsComponent implements OnInit, OnChanges {
     if (source) {
       source.subscribe({
         next: (data: Post[]) => this.populatePosts(data, profile),
-        error: err => {
+        error: (err: Post[]) => {
           console.error('Error cargando posts', err);
           this.loading = false;
         }
@@ -182,7 +182,7 @@ export class PostsComponent implements OnInit, OnChanges {
       if (liked) this.likedPostIds.add(p.id);
       const username = p.username ?? profile?.username ?? '';
       const userAvatar = p.userAvatar ?? profile?.photoURL ?? '';
-      const petName = p.petName ?? (p.pet_id && profile?.pets?.find(x => x.id === p.pet_id)?.name) || '';
+      const petName = (p.petName ?? (p.pet_id && profile?.pets?.find(x => x.id === p.pet_id)?.name)) || '';
       return {
         ...p,
         username,
