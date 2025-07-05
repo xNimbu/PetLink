@@ -77,7 +77,7 @@ export class PostsComponent implements OnInit, OnChanges {
     // Re-cargar posts cuando se crea uno nuevo solo si es el propio perfil
     if (!this.uid || this.uid === this.authService.uid) {
       this.subscriptions.add(
-        this.postsService.postCreated$.subscribe(() => this.loadPosts())
+        this.postsService.postCreated$.subscribe(() => this.loadPosts(this.user))
       );
     }
 
@@ -97,7 +97,7 @@ export class PostsComponent implements OnInit, OnChanges {
       ).subscribe({
         next: profile => {
           this.user = profile;
-          this.loadPosts();
+          this.loadPosts(profile);
         },
         error: err => {
           console.error('Error cargando perfil', err);
@@ -108,42 +108,49 @@ export class PostsComponent implements OnInit, OnChanges {
     );
   }
 
-  /** Trae todos los posts (incluyen comments, likes, etc.) desde el backend */
-  private loadPosts(): void {
+  /** Trae todos los posts para el perfil actual */
+  private loadPosts(profile: Profile): void {
     this.loading = true;
-    const obs = this.isOwnProfile
-      ? this.postsService.getUserPosts()
-      : this.postsService.getPostsByUid(this.uid!);
-    obs.subscribe({
-      next: data => {
-        this.likedPostIds.clear();
-        this.posts = data.map(p => {
-          const liked = p.likes?.some(l => l.uid === this.authService.uid);
-          if (liked) this.likedPostIds.add(p.id);
-          return {
-            ...p,
-            // Datos de usuario para mostrar
-            username: this.user.username,
-            userAvatar: this.user.photoURL,
+    const source = this.isOwnProfile ? this.postsService.getUserPosts() : null;
 
-            // Nombre de la mascota si pet_id está presente
-            petName: p.pet_id
-              ? (this.user.pets?.find(x => x.id === p.pet_id)?.name ?? '')
-              : '',
+    if (source) {
+      source.subscribe({
+        next: data => this.populatePosts(data, profile),
+        error: err => {
+          console.error('Error cargando posts', err);
+          this.loading = false;
+        }
+      });
+    } else {
+      const data = profile.posts ?? [];
+      this.populatePosts(data as Post[], profile);
+    }
+  }
 
-            // Aseguramos que comments exista (viene anidado desde el backend)
-            comments: p.comments ?? [],
-            likesCount: p.likesCount ?? 0
-          } as Post;
-        });
-        this.postsChange.emit(this.posts);
-        this.loading = false;
-      },
-      error: err => {
-        console.error('Error cargando posts', err);
-        this.loading = false;
-      }
+  private populatePosts(data: Post[], profile: Profile): void {
+    this.likedPostIds.clear();
+    this.posts = data.map(p => {
+      const liked = p.likes?.some(l => l.uid === this.authService.uid);
+      if (liked) this.likedPostIds.add(p.id);
+      return {
+        ...p,
+        // Datos de usuario para mostrar
+        username: profile.username,
+        userAvatar: profile.photoURL,
+
+        // Nombre de la mascota si pet_id está presente
+        petName: p.pet_id
+          ? (profile.pets?.find(x => x.id === p.pet_id)?.name ?? '')
+          : '',
+
+        // Aseguramos que comments exista (viene anidado desde el backend)
+        comments: p.comments ?? [],
+        likesCount: p.likesCount ?? 0
+      } as Post;
     });
+    this.postsChange.emit(this.posts);
+    this.loading = false;
+  }
 
   }
 
