@@ -30,6 +30,22 @@
           <h2 class="mb-1">{{ user.fullName }}</h2>
           <!-- <p class="text-muted mb-0">@{{ user.username }}</p> -->
         </div>
+        <div class="ms-auto" *ngIf="!isOwnProfile">
+          <button
+            *ngIf="!isFriend"
+            class="btn btn-primary"
+            (click)="addFriend()"
+          >
+            Agregar amigo
+          </button>
+          <button
+            *ngIf="isFriend"
+            class="btn btn-danger"
+            (click)="removeFriend()"
+          >
+            Eliminar amigo
+          </button>
+        </div>
       </div>
 
       <!-- Menú de navegación -->
@@ -64,7 +80,7 @@
     <div class="col-md-8">
       <!-- ¿Qué estás pensando? -->
 
-      <app-add-post></app-add-post>
+      <app-add-post *ngIf="isOwnProfile"></app-add-post>
       <!-- <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
         <input
           type="text"
@@ -93,7 +109,7 @@
       </ul>
 
       <!-- Publicaciones  -->
-      <app-posts></app-posts>
+      <app-posts *ngIf="user" [uid]="user.uid"></app-posts>
     </div>
   </div>
 </div>

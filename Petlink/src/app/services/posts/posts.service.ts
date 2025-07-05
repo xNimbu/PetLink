@@ -36,6 +36,45 @@ export class PostsService {
       );
   }
 
+  /** Obtiene los posts públicos de otro usuario por UID */
+  getPostsByUid(uid: string): Observable<Post[]> {
+    return this.http
+      .get<{ posts: Post[] }>(`${this.base}/user/${uid}/`, this.auth.getAuthHeaders())
+      .pipe(
+        map(res => res.posts.map(raw => ({
+          id: raw.id,
+          content: raw.content,
+          photoURL: raw.photoURL,
+          timestamp: raw.timestamp,
+          pet_id: raw.pet_id,
+          comments: raw.comments,
+          likes: raw.likes,
+          likesCount: raw.likesCount
+        })))
+      );
+  }
+
+  /** Posts de usuario y amigos mezclados */
+  getFriendsPosts(): Observable<Post[]> {
+    const url = `${environment.backendUrl}/profile/friends/posts/`;
+    return this.http
+      .get<{ posts: any[] }>(url, this.auth.getAuthHeaders())
+      .pipe(
+        map(res => res.posts.map(raw => ({
+          id: raw.id,
+          content: raw.content,
+          photoURL: raw.photoURL,
+          timestamp: raw.timestamp,
+          pet_id: raw.pet_id,
+          comments: raw.comments,
+          likes: raw.likes,
+          likesCount: raw.likesCount,
+          username: raw.owner?.username,
+          userAvatar: raw.owner?.avatar
+        } as Post)))
+      );
+  }
+
   /** Crea un post de solo texto */
   createPost(post: { content: string }): Observable<Post> {
     return this.http
