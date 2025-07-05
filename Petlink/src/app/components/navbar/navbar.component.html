@@ -26,7 +26,7 @@
         <input type="text" class="form-control border-start-0 rounded-end" [(ngModel)]="query" placeholder="Buscar..." />
         <ul *ngIf="results.length">
           <li *ngFor="let u of results">
-            <a [routerLink]="['/profile', u.username || u.uid]">
+            <a [routerLink]="['/profile', u.uid]">
               <img [src]="u.avatar" width="24" height="24"> {{ u.username }}
             </a>
           </li>
@@ -95,7 +95,7 @@
       </li>
       <!-- Perfil -->
       <li class="nav-item">
-        <a class="nav-link" (click)="openProfile()" style="cursor: pointer">
+        <a class="nav-link" routerLink="/profile" style="cursor: pointer">
           <i class="fas fa-user fa-lg"></i>
         </a>
       </li>

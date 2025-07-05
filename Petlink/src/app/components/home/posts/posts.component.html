@@ -18,15 +18,15 @@
       <div class="d-flex align-items-center mb-2 justify-content-between">
         <div class="d-flex align-items-center">
           <img
-            [src]="post.userAvatar || user.photoURL"
+            [src]="user.photoURL"
             class="rounded-circle me-2"
             width="40"
             height="40"
-            alt="Avatar"
+            alt="Avatar de {{ user.fullName }}"
           />
           <div>
             <!-- Nombre usuario + mascota -->
-            <strong>{{ post.username || user.fullName }}</strong>
+            <strong>{{ user.fullName }}</strong>
             <!-- ▼ sólo si hay mascota, mostramos imagen + "con NOMBRE" -->
             <ng-container *ngIf="post.pet_id">
               <span class="d-inline-flex align-items-center ms-2">
@@ -43,7 +43,7 @@
         </div>
 
         <!-- Menú de tres puntos -->
-        <div class="dropdown" *ngIf="isOwnProfile">
+        <div class="dropdown">
           <button
             class="btn btn-link text-muted p-0"
             type="button"
