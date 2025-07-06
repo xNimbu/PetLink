@@ -10,7 +10,7 @@ import { CommentPostService } from '../../../services/commentsPost/comment-post.
 
 import { Profile } from '../../../models/profile/profile.model';
 import { Post } from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
-import { filter, first, Subscription, switchMap } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-posts',
@@ -58,12 +58,15 @@ export class PostsComponent implements OnInit, OnChanges {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    // Datos del usuario actual para comentar
+    // Datos del usuario actual para comentar y para inicializar el feed
     this.profileService.getProfile().then(p => {
       this.viewerUid = p.uid;
       this.viewerUsername = p.username;
-    }).catch(() => {});
-    this.initFeed();
+      this.user = p; // cachear para usarlo en el feed si es necesario
+      this.initFeed();
+    }).catch(() => {
+      this.initFeed();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -83,26 +86,9 @@ export class PostsComponent implements OnInit, OnChanges {
   }
 
   private initFeed(): void {
-    // Si es feed de amigos, solo obtenemos el perfil propio una vez
     if (this.friendsFeed) {
       this.isOwnProfile = false;
-      this.subscriptions.add(
-        this.authService.ready$.pipe(
-          filter(r => r),
-          first(),
-          switchMap(() => this.profileService.getProfile())
-        ).subscribe({
-          next: profile => {
-            this.user = profile;
-            this.loadFriendsPosts();
-          },
-          error: err => {
-            console.error('Error cargando feed', err);
-            this.errorMsg = 'No se pudo cargar el feed.';
-            this.loading = false;
-          }
-        })
-      );
+      this.loadFriendsPosts();
       return;
     }
 
@@ -113,20 +99,9 @@ export class PostsComponent implements OnInit, OnChanges {
       );
     }
 
-    // Esperar a que AuthService esté listo y luego obtener perfil
-    this.subscriptions.add(
-      this.authService.ready$.pipe(
-        filter(ready => ready),
-        first(),
-        switchMap(() => {
-          if (this.uid && this.uid !== this.authService.uid) {
-            this.isOwnProfile = false;
-            return this.profileService.getPublicProfile(this.uid);
-          }
-          this.isOwnProfile = true;
-          return this.profileService.getProfile();
-        })
-      ).subscribe({
+    if (this.uid && this.uid !== this.authService.uid) {
+      this.isOwnProfile = false;
+      this.profileService.getPublicProfile(this.uid).subscribe({
         next: profile => {
           this.user = profile;
           this.loadPosts(profile);
@@ -136,8 +111,14 @@ export class PostsComponent implements OnInit, OnChanges {
           this.errorMsg = 'No se pudo cargar tu perfil.';
           this.loading = false;
         }
-      })
-    );
+      });
+      return;
+    }
+
+    this.isOwnProfile = true;
+    if (this.user) {
+      this.loadPosts(this.user);
+    }
   }
 
   /** Trae todos los posts para el perfil actual */
