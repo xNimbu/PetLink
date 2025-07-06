@@ -17,6 +17,7 @@ export interface Friend {
 })
 export class FriendService {
   private baseUrl = environment.backendUrl;
+  private friendsSet: Set<string> = new Set<string>();
 
   constructor(
     private http: HttpClient,
@@ -44,5 +45,20 @@ export class FriendService {
       `${this.baseUrl}/profile/friends/${uid}/`,
       this.auth.getAuthHeaders()
     );
+  }
+
+  /* ----------------------------------------------------------------
+     NUEVO  –  envío de solicitud desde el buscador
+     POST /profile/friend_request/  { uid }
+     ---------------------------------------------------------------- */
+  sendFriendRequest(toUid: string): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/profile/friends/`,
+      { uid: toUid },
+      this.auth.getAuthHeaders()
+    );
+  }
+  has(uid: string): boolean {
+    return this.friendsSet.has(uid);
   }
 }
