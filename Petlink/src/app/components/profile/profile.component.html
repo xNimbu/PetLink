@@ -1,98 +1,115 @@
-<!-- <p>profile works!</p> -->
-<div class="profile-page position-relative vh-100"
-  style="background: url('/assets/images/frame_login.svg') no-repeat center center; background-size: cover;">
-  @if (user) {
-  <!-- overlay -->
-  <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 1;"></div>
+<!-- Fondo general -->
+<div class="profilefeed mt-5 bg-light" >
+  <!--<div class="profilefeed bg-light min-vh-100 pb-5">-->
 
-  <div class="container py-4 position-relative" style="z-index: 2;">
-    <div class="card mx-custom shadow-lg p-4 rounded-4 bg-white bg-opacity-75 mt-5">
+  <!-- Portada -->
+  <div class="position-relative">
+    <img
+      src="assets/images/dog-paws.png"
+      class="w-100"
+      style="height: 250px; object-fit: cover"
+    />
+  </div>
 
-      <!-- CABECERA -->
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
-
-        <!-- Avatar + datos -->
-        <div class="d-flex align-items-start flex-grow-1">
-          <img [src]="user.photoURL" class="rounded-circle me-3"
-            style="width: 110px; height:110px; object-fit: cover;" />
-
-          <div class="profile-info">
-            <h5 class="mb-1 text-uppercase fw-bold">{{ user.fullName }}</h5>
-            <p class="text-muted mb-3">{{ '@' + user.username }}</p>
-
-            <ul class="list-unstyled small mb-0">
-              <li class="mb-1">
-                <span class="fw-bold">Nombre completo</span><br />
-                {{ user.fullName }}
-              </li>
-              <li class="mb-1">
-                <span class="fw-bold">Correo electrónico</span><br />
-                {{ user.email }}
-              </li>
-              <li class="mb-1">
-                <span class="fw-bold">Teléfono</span><br />
-                {{ user.phone || '-' }}
-              </li>
-            </ul>
-          </div>
+  <!-- Contenedor principal -->
+  <div class="container position-relative" style="margin-top: -75px">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <!-- Avatar y datos -->
+      <div *ngIf="user" class="d-flex align-items-center">
+        <!-- Avatar -->
+        <div class="me-4">
+          <img
+            [src]="user.photoURL"
+            class="rounded-circle border border-white border-3"
+            style="width: 150px; height: 150px; object-fit: cover"
+          />
         </div>
 
-        <!-- Botones -->
-        <div class="ms-md-4 mt-3 mt-md-0 d-flex flex-row gap-2">
-          <button class="btn btn-success" (click)="openEditProfileModal()">Editar perfil</button>
-          <button class="btn btn-danger" (click)="logout()">Cerrar Sesión</button>
+        <!-- Info de usuario -->
+        <div>
+          <h2 class="mb-1">{{ user.fullName }}</h2>
+          <!-- <p class="text-muted mb-0">@{{ user.username }}</p> -->
+        </div>
+        <div class="ms-auto" *ngIf="!isOwnProfile">
+          <button
+            *ngIf="!isFriend"
+            class="btn btn-primary"
+            (click)="addFriend()"
+          >
+            Agregar amigo
+          </button>
+          <button
+            *ngIf="isFriend"
+            class="btn btn-danger"
+            (click)="removeFriend()"
+          >
+            Eliminar amigo
+          </button>
         </div>
       </div>
 
-      <!-- MASCOTAS -->
-      <h5 class="text-center mb-3">Mascotas</h5>
-
-      <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-outline-success" (click)="openAddPetModal()">
-          <i class="bi bi-plus-circle me-2"></i> Agregar Mascota
-        </button>
+      <!-- Menú de navegación -->
+      <div class="mt-4 border-top pt-3 d-flex gap-3">
+        <a href="#" class="text-decoration-none text-dark fw-semibold"
+          >Publicaciones</a
+        >
+        <!-- <a href="#" class="text-decoration-none text-dark fw-semibold">Mascotas</a>
+        <a href="#" class="text-decoration-none text-dark fw-semibold">Información</a>
+        <a href="#" class="text-decoration-none text-dark fw-semibold">Amigos</a> -->
       </div>
+    </div>
+    <!-- Sección de publicaciones u otro contenido -->
+  </div>
+</div>
+<!-- Sección de contenido -->
+<div class="container mt-4">
+  <div class="row">
+    <!-- Columna izquierda -->
+    <div class="col-md-4 d-none d-md-block">
+      <div class="sticky-col">
+        <app-detail-profile
+          [user]="user"
+          [petPhotos]="petPhotos"
+          [friends]="friends"
+        >
+        </app-detail-profile>
+      </div>
+    </div>
 
-      @for (pet of pets; track $index) {
+    <!-- Columna derecha -->
+    <div class="col-md-8">
+      <!-- ¿Qué estás pensando? -->
 
-      <div class="card mb-3 p-3 rounded-4 position-relative">
-        <div class="d-flex align-items-center">
-          <img [src]="pet.photoURL || 'default-pet.png'" class="rounded-circle me-3"
-            style="width: 60px; height:60px; object-fit: cover;" />
-          <div class="w-100">
-            <div class="row">
-              <div class="col-6 col-md-3 mb-2">
-                <strong>Nombre Mascota:</strong><br />{{ pet.name }}
-              </div>
-              <div class="col-6 col-md-3 mb-2">
-                <strong>Raza:</strong><br />{{ pet.breed }}
-              </div>
-              <div class="col-6 col-md-3 mb-2">
-                <strong>Edad:</strong><br />{{ pet.age }} años
-              </div>
-              <div class="col-6 col-md-3 mb-2">
-                <strong>Tipo:</strong><br />{{ pet.type }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Menú de opciones -->
-          <div class="dropdown position-absolute top-0 end-0 m-2">
-            <button class="btn btn-light btn-sm" data-bs-toggle="dropdown">
-              <i class="bi bi-three-dots-vertical"></i>
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" (click)="openEditPetModal(pet)">Editar</a></li>
-              <li><a class="dropdown-item text-danger" (click)="deletePet(pet.id)">Eliminar</a></li>
-            </ul>
-          </div>
+      <app-add-post *ngIf="isOwnProfile"></app-add-post>
+      <!-- <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
+        <input
+          type="text"
+          class="form-control rounded-pill mb-2"
+          placeholder="¿Qué estás pensando, {{ user.fullName }}?"
+        />
+        <div class="d-flex gap-3 mt-2 small text-muted">
+          <span><i class="bi bi-image me-1"></i>Foto/video</span>
         </div>
-      </div>
-      }
+      </div> -->
 
+      <!-- Navegación de pestañas -->
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+          <a class="nav-link active">Publicaciones</a>
+        </li>
+        <!-- <li class="nav-item">
+          <a class="nav-link">Información</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link">Amigos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link">Fotos</a>
+        </li> -->
+      </ul>
+
+      <!-- Publicaciones  -->
+      <app-posts *ngIf="user" [uid]="user.uid"></app-posts>
     </div>
   </div>
-  }@else {
-  <p class="text-center mt-5">Cargando perfil…</p>
-  }
 </div>

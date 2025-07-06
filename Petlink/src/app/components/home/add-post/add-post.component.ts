@@ -3,6 +3,8 @@ import { Component, Output, EventEmitter, inject, PLATFORM_ID, OnInit } from '@a
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProfileService } from '../../../services/profile/profile.service';
+import { PetsService } from '../../../services/pets/pets.service';
+import { PostsService } from '../../../services/posts/posts.service';
 import { Pet, Profile } from '../../../models';
 import { AuthService } from '../../../services/auth/auth.service';
 import { catchError, filter, first, switchMap, of } from 'rxjs';
@@ -29,6 +31,8 @@ export class AddPostComponent {
   profileFields: { label: string, value: string }[] = [];
 
   private profileService = inject(ProfileService);
+  private petsService = inject(PetsService);
+  private postsService = inject(PostsService);
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
@@ -36,6 +40,24 @@ export class AddPostComponent {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
+
+    this.petsService.listPets()
+      .pipe(
+      catchError(err => {
+        console.error('Error cargando mascotas', err);
+        return of<Pet[]>([]);
+      })
+      )
+      .subscribe(pets => {
+        if (Array.isArray(pets)) {
+          this.pets = pets;
+        } else if (pets && Array.isArray((pets as any).pets)) {
+          this.pets = (pets as any).pets;
+        } else {
+          this.pets = [];
+        }
+      });
+
 
     this.authService.ready$
       .pipe(
@@ -55,7 +77,7 @@ export class AddPostComponent {
         this.profileFields = [
           { label: 'Nombre completo',      value: profile.fullName },
           { label: 'Correo electrónico',   value: profile.email },
-          { label: 'Teléfono',             value: profile.phone },
+          { label: 'Teléfono',             value: profile.phone? profile.phone : 'No disponible' },
           { label: 'Tipo de usuario',      value: profile.role }
         ];
       });
@@ -93,9 +115,8 @@ export class AddPostComponent {
     if (this.selectedPet) {
       formData.append('pet_id', this.selectedPet.id);
     }
-    
 
-    this.profileService.createPostWithImage(formData).subscribe({
+    this.postsService.createPostWithImage(formData).subscribe({
       next: () => {
         this.postCreated.emit();
         this.cancel();

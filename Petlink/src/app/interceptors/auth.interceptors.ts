@@ -27,12 +27,21 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
 
+    const token = this.authService.token;
+
+    // Si ya tenemos el token en memoria, no creamos Observable adicional
+    if (token) {
+      const authReq = req.clone({
+        setHeaders: { Authorization: `Bearer ${token}` }
+      });
+      return next.handle(authReq);
+    }
+
     // from convierte la Promise<string> en Observable<string>
     return from(this.authService.getIdToken()).pipe(
-      mergeMap(token => {
-        // Si hay token, clona la request con Authorization
-        const authReq = token
-          ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+      mergeMap(t => {
+        const authReq = t
+          ? req.clone({ setHeaders: { Authorization: `Bearer ${t}` } })
           : req;
         return next.handle(authReq);
       })

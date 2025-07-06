@@ -1,4 +1,4 @@
-import { Component, HostListener, ElementRef } from '@angular/core';
+import { Component, HostListener, ElementRef, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -6,13 +6,10 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { FriendService } from '../../services/friends/friend.service';
 
-interface Notification {
-  username: string;
-  avatar: string;
-  message: string;
-  link?: string;
-  read: boolean;
-}
+import { Notification } from '../../models';
+import { NotificationsService } from '../../services/notifications/notifications.service';
+import { ProfileService } from '../../services/profile/profile.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 // Tipo para resultados de búsqueda, con flag opcional para indicar si es amigo
 interface UserResult {
@@ -33,6 +30,13 @@ interface UserResult {
 })
 export class NavbarComponent {
 
+
+  private notificationsService = inject(NotificationsService);
+  private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  showNotifications = false;
+
+
   // Buscador
   query = '';
   results: {
@@ -41,18 +45,10 @@ export class NavbarComponent {
   }[] = [];
   showDropdown = false;
 
-  // Notificaciones
-  showNotifications = false;
-  //query = '';
-  //results: Array<{ uid: string; username: string; avatar: string }> = [];
-
-  notifications: Notification[] = [
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'le ha dado like a tu publicación', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'ha compartido una foto tuya', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'ha comentado tu foto', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'le ha dado like a tu publicación', read: false }
-  ];
-  private myFriends: Set<string> = new Set(); // Para almacenar amigos
+  /** Lista reactiva de notificaciones */
+  notifications = this.notificationsService.notifications;
+  /** Contador de no leídas */
+  unreadCount = this.notificationsService.unreadCount;
 
   constructor(
     private router: Router,
@@ -62,7 +58,7 @@ export class NavbarComponent {
   ) {
     /* ① cargar amigos una sola vez */
     this.friendService.list().subscribe(resp => {
-      resp.friends.forEach(f => this.myFriends.add(f.uid));
+      resp.friends.forEach(f => this.friendService.add(f.uid));
     });
   }
 
@@ -83,8 +79,11 @@ export class NavbarComponent {
     this.http.get<UserResult[]>(`${environment.backendUrl}/profile_list/?q=${encodeURIComponent(q)}`)
       .subscribe(res => {
         console.log('resultados', res);
-        this.results = res.map(u => ({ ...u, isFriend: this.myFriends.has(u.uid), requestSent: false })); // Añadir requestSent por defecto
+        this.results = res.map(u => ({ ...u, isFriend: this.friendService.has(u.uid), requestSent: false })); // Añadir requestSent por defecto
       });
+
+    // Listar perfiles
+    
   }
 
   // Cerrar dropdown
@@ -123,14 +122,31 @@ export class NavbarComponent {
     this.router.navigate(['/home']);
   }
 
+  openSettings(): void {
+    this.router.navigate(['/settings']);
+  }
+
   openProfile(): void {
-    this.router.navigate(['/profile']);
+    this.profileService.getProfile()
+      .then(profile => {
+        const target = profile.username || profile.uid;
+        this.router.navigate(['/profile', target]);
+      })
+      .catch(() => {
+        const uid = this.authService.uid;
+        if (uid) {
+          this.router.navigate(['/profile', uid]);
+        }
+      });
   }
 
   toggleNotifications(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.notificationsService.fetch();
+    }
   }
 
   /**
@@ -140,7 +156,7 @@ export class NavbarComponent {
     event.preventDefault();
     event.stopPropagation();
     if (!notification.read) {
-      notification.read = true;
+      this.notificationsService.markAsRead(notification);
     }
   }
 
@@ -149,9 +165,5 @@ export class NavbarComponent {
     if (!this.host.nativeElement.contains(target)) {
       this.showNotifications = false;
     }
-  }
-
-  get unreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
   }
 }
