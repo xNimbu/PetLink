@@ -45,4 +45,16 @@ export class FriendService {
       this.auth.getAuthHeaders()
     );
   }
+
+  /* ----------------------------------------------------------------
+     NUEVO  –  envío de solicitud desde el buscador
+     POST /profile/friend_request/  { uid }
+     ---------------------------------------------------------------- */
+  sendFriendRequest(toUid: string): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/profile/friend_request/`,
+      { uid: toUid },
+      this.auth.getAuthHeaders()
+    );
+  }
 }
