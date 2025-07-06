@@ -9,7 +9,6 @@
     </button>
 
     <!-- Search -->
-<<<<<<< HEAD
     <div class="mx-auto w-50 position-relative">
       <input type="text" class="form-control rounded-pill" placeholder="Buscar…" [(ngModel)]="query"
         (focus)="openDropdown()" (input)="onSearch()" (keydown.escape)="closeDropdown()" />
@@ -42,19 +41,6 @@
           </span>
         </li>
       </ul>
-=======
-    <div class="mx-auto w-50">
-      <div class="input-group">
-        <input type="text" class="form-control border-start-0 rounded-end" [(ngModel)]="query" placeholder="Buscar..." />
-        <ul *ngIf="results.length">
-          <li *ngFor="let u of results">
-            <a [routerLink]="['/profile', u.username || u.uid]">
-              <img [src]="u.avatar" width="24" height="24"> {{ u.username }}
-            </a>
-          </li>
-        </ul>
-      </div>
->>>>>>> dev
     </div>
 
     <!-- Icons -->
@@ -63,17 +49,11 @@
       <li class="nav-item position-relative me-3">
         <button class="btn nav-link p-0" (click)="toggleNotifications($event)">
           <i class="fas fa-bell fa-lg"></i>
-<<<<<<< HEAD
-          <span *ngIf="unreadCount"
-            class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
-            {{ unreadCount }}
-=======
           <span
             *ngIf="unreadCount()"
             class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
           >
             {{ unreadCount() }}
->>>>>>> dev
           </span>
         </button>
 
@@ -83,12 +63,6 @@
           <div class="card-header flex-shrink-0 fw-bold">Notificaciones</div>
 
           <div class="list-group list-group-flush flex-grow-1 overflow-auto">
-<<<<<<< HEAD
-            <a *ngFor="let n of notifications" [routerLink]="n.link || null"
-              class="list-group-item d-flex align-items-start" [ngClass]="{ unread: !n.read, read: n.read }"
-              (click)="markAsRead(n, $event)">
-              <img [src]="n.avatar" class="rounded-circle me-2" width="30" height="30" />
-=======
             <a
               *ngFor="let n of notifications()"
               [routerLink]="n.link || null"
@@ -102,20 +76,15 @@
                 width="30"
                 height="30"
               />
->>>>>>> dev
               <div class="small">
                 <strong>{{ n.username }}</strong>
                 <div class="text-truncate">{{ n.message }}</div>
               </div>
             </a>
-<<<<<<< HEAD
-            <div *ngIf="!notifications.length" class="list-group-item text-center text-muted py-3">
-=======
             <div
               *ngIf="!notifications().length"
               class="list-group-item text-center text-muted py-3"
             >
->>>>>>> dev
               No hay notificaciones
             </div>
           </div>
