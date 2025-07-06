@@ -1,6 +1,6 @@
-import { Component, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, HostListener, ElementRef, inject, Inject, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
@@ -34,6 +34,7 @@ export class NavbarComponent {
   private notificationsService = inject(NotificationsService);
   private profileService = inject(ProfileService);
   private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
   showNotifications = false;
 
 
@@ -56,10 +57,15 @@ export class NavbarComponent {
     private http: HttpClient,
     private friendService: FriendService
   ) {
-    /* ① cargar amigos una sola vez */
-    this.friendService.list().subscribe(resp => {
-      resp.friends.forEach(f => this.friendService.add(f.uid));
-    });
+    /* ① cargar amigos una sola vez solo si hay sesión en el navegador */
+    if (isPlatformBrowser(this.platformId) && this.authService.isLoggedIn) {
+      this.friendService.list().subscribe({
+        next: resp => resp.friends.forEach(f => this.friendService.add(f.uid)),
+        error: () => {
+          // Avoid console noise when not authorized
+        }
+      });
+    }
   }
 
   // Busqueda

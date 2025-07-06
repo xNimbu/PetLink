@@ -1,7 +1,5 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideServerRendering } from '@angular/platform-server';
-import { provideClientHydration } from '@angular/platform-browser';
 import {
   provideHttpClient,
   withFetch,
@@ -12,7 +10,7 @@ import {
   provideFirebaseApp,
   initializeApp
 } from '@angular/fire/app';
-import { provideAuth, Auth, getAuth } from '@angular/fire/auth';
+import { provideAuth, getAuth } from '@angular/fire/auth';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 
@@ -41,17 +39,7 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
-
-    // SSR vs Browser
-    ...(typeof window === 'undefined'
-      ? [
-          provideServerRendering(),
-          // para que `@angular/fire/auth` inyecte algo y no falle:
-          provideAuth(() => null as unknown as Auth)
-        ]
-      : [
-          provideClientHydration(),
-          provideAuth(() => getAuth())
-        ])
+    // Firebase auth only in the browser
+    provideAuth(() => getAuth())
   ]
 };

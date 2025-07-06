@@ -97,9 +97,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .filter(p => !!p.photoURL)
             .map(p => p.photoURL!);
           this.friends = profile.friends ?? [];
-          if (!this.isOwnProfile) {
-            this.friendService.list().subscribe(resp => {
-              this.isFriend = resp.friends.some(f => f.uid === profile.uid);
+          if (!this.isOwnProfile && this.authService.isLoggedIn) {
+            this.friendService.list().subscribe({
+              next: resp => {
+                this.isFriend = resp.friends.some(f => f.uid === profile.uid);
+              },
+              error: () => {
+                // ignore unauthorized errors if not logged in
+              }
             });
           }
           this.loading = false;
