@@ -32,6 +32,12 @@ private baseUrl = `${environment.backendUrl}/posts`;
     return this.http.post<AddCommentResponse>(url, { message }, { headers });
   }
 
+  modComment(postId: string, message: string, idComment: string): Observable<AddCommentResponse> {
+    const url = `${this.baseUrl}/${postId}/comments/${idComment}`;
+    const headers = this.buildHeaders();
+    return this.http.post<AddCommentResponse>(url, { message }, { headers });
+  }
+
   private buildHeaders(): HttpHeaders {
     const token = this.auth.getIdToken();
     return new HttpHeaders({
