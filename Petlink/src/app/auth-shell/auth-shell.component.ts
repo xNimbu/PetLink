@@ -42,7 +42,14 @@ import { filter } from 'rxjs';
     ])
   ]
 })
-export class AuthShellComponent {
+export class AuthShellComponent implements AfterViewInit {
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  ngAfterViewInit() {
+    // Evita ExpressionChangedAfterItHasBeenCheckedError al activar la ruta
+    this.cdr.detectChanges();
+  }
+
   prepareRoute(outlet: RouterOutlet): 'LoginPage' | 'RegisterPage' {
     // Si el outlet ya está activo devuelve su data.animation,
     // si no, devolvemos 'LoginPage' para que nunca sea undefined.

@@ -1,9 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
-import { ReactiveFormsModule, FormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Component } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  FormsModule,
+  FormGroup,
+  FormBuilder,
+  Validators
+} from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
+import { ProfileService } from '../../services/profile/profile.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -14,16 +22,21 @@ import { AuthService } from '../../services/auth/auth.service';
 })
 export class RegisterComponent {
   registerForm!: FormGroup;
+  profileForm!: FormGroup;
   loading = false;
   showPassword = false;
   showPassword2 = false;
+  step = 1;
+  private email = '';
+  private password = '';
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private toastr: ToastrService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private profileService: ProfileService
   ) {}
 
   ngOnInit() {
@@ -32,6 +45,11 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
       password2: ['', Validators.required]
+    });
+
+    this.profileForm = this.fb.group({
+      username: ['', Validators.required],
+      phone: ['']
     });
   }
 
@@ -54,10 +72,38 @@ export class RegisterComponent {
     try {
       await this.authService.register(email, password, nombre);
       this.toastr.success('Usuario creado correctamente', '¡Registro OK!');
-      this.router.navigate(['/login']);
+
+      // Guarda credenciales para el siguiente paso y loguea para obtener token
+      this.email = email;
+      this.password = password;
+      await this.authService.loginWithEmail(email, password);
+      this.step = 2;
     } catch (err: any) {
       const msg = err.error?.error || err.message || 'Error al registrar';
       this.toastr.error(msg, 'Falló Registro');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async completeProfile() {
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+    this.loading = true;
+    const formData = new FormData();
+    formData.append('fullName', this.registerForm.value.nombre);
+    formData.append('email', this.email);
+    formData.append('username', this.profileForm.value.username);
+    formData.append('phone', this.profileForm.value.phone);
+    try {
+      await firstValueFrom(this.profileService.updateProfileForm(formData));
+      this.toastr.success('Perfil completado', '¡Listo!');
+      this.router.navigate(['/home']);
+    } catch (err: any) {
+      const msg = err.error?.error || err.message || 'Error al completar perfil';
+      this.toastr.error(msg, 'Falló');
     } finally {
       this.loading = false;
     }
