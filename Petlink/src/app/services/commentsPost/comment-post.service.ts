@@ -32,10 +32,30 @@ private baseUrl = `${environment.backendUrl}/posts`;
     return this.http.post<AddCommentResponse>(url, { message }, { headers });
   }
 
-  modComment(postId: string, message: string, idComment: string): Observable<AddCommentResponse> {
-    const url = `${this.baseUrl}/${postId}/comments/${idComment}`;
-    const headers = this.buildHeaders();
-    return this.http.post<AddCommentResponse>(url, { message }, { headers });
+/** Actualiza un comentario existente (PUT) */
+  updateComment(
+    postId: string,
+    commentId: string,
+    message: string
+  ): Observable<{ mensaje: string }> {
+    const url = `${this.baseUrl}/${postId}/comments/${commentId}/`;
+    return this.http.put<{ mensaje: string }>(
+      url,
+      { message },
+      { headers: this.buildHeaders() }
+    );
+  }
+
+  /** Elimina un comentario (DELETE) */
+  deleteComment(
+    postId: string,
+    commentId: string
+  ): Observable<{ mensaje: string }> {
+    const url = `${this.baseUrl}/${postId}/comments/${commentId}/`;
+    return this.http.delete<{ mensaje: string }>(
+      url,
+      { headers: this.buildHeaders() }
+    );
   }
 
   private buildHeaders(): HttpHeaders {

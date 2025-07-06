@@ -16,7 +16,7 @@ export class PostsService {
   constructor(
     private http: HttpClient,
     private auth: AuthService
-  ) {}
+  ) { }
 
   /** Obtiene y desenvuelve los posts del usuario */
   getUserPosts(): Observable<Post[]> {
@@ -83,14 +83,16 @@ export class PostsService {
   }
 
   /** Crea un post con imagen usando FormData */
-  createPostWithImage(formData: FormData): Observable<any> {
+  createPostWithImage(formData: FormData): Observable<Post> {
     return from(this.auth.getIdToken()).pipe(
       switchMap(token => {
-        const headers = new HttpHeaders({
-          'Authorization': `Bearer ${token}`
-        });
-        return this.http.post(`${this.base}/`, formData, { headers });
-      })
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        // Aquí especificamos que devuelve un Post
+        return this.http.post<Post>(`${this.base}/`, formData, { headers });
+      }),
+      tap(post => {
+        console.log('🟢 [PostsService] post creado:', post);
+        this.postCreatedSubject.next(post);})
     );
   }
 
