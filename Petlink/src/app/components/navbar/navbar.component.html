@@ -1,37 +1,46 @@
-<nav
-  class="navbar navbar-expand-lg fixed-top"
-  [ngClass]="{
+<nav class="navbar navbar-expand-lg fixed-top" [ngClass]="{
     'bg-white': !showNotifications,
     'bg-success': showNotifications
-  }"
-  style="padding: 0.5rem 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1)"
->
+  }" style="padding: 0.5rem 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1)">
   <div class="container-fluid">
     <!-- Logo -->
-    <button
-      type="button"
-      class="navbar-brand p-0 bg-transparent border-0"
-      (click)="openHome()"
-    >
-      <img
-        src="/assets/images/petlink_logo.svg"
-        alt="PetLink Logo"
-        height="40"
-      />
+    <button type="button" class="navbar-brand p-0 bg-transparent border-0" (click)="openHome()">
+      <img src="/assets/images/petlink_logo.svg" alt="PetLink Logo" height="40" />
     </button>
 
     <!-- Search -->
-    <div class="mx-auto w-50">
-      <div class="input-group">
-        <input type="text" class="form-control border-start-0 rounded-end" [(ngModel)]="query" placeholder="Buscar..." />
-        <ul *ngIf="results.length">
-          <li *ngFor="let u of results">
-            <a [routerLink]="['/profile', u.uid]">
-              <img [src]="u.avatar" width="24" height="24"> {{ u.username }}
-            </a>
-          </li>
-        </ul>
-      </div>
+    <div class="mx-auto w-50 position-relative">
+      <input type="text" class="form-control rounded-pill" placeholder="Buscar…" [(ngModel)]="query"
+        (focus)="openDropdown()" (input)="onSearch()" (keydown.escape)="closeDropdown()" />
+
+      <!-- Lista de resultados -->
+      <ul *ngIf="showDropdown && results.length" class="list-group position-absolute w-100 mt-1 z-3 shadow-sm"
+        style="max-height: 260px; overflow-y:auto;">
+
+        <li *ngFor="let u of results" class="list-group-item d-flex align-items-center justify-content-between gap-2">
+
+          <!-- Avatar + username (clic navega) -->
+          <div class="d-flex align-items-center gap-2" (mousedown)="goToProfile(u)">
+            <img [src]="u.avatar || 'assets/images/nophoto_avatar.jpg'" class="rounded-circle" width="32" height="32" />
+            <span>{{ u.username }}</span>
+          </div>
+
+          <!-- Ya son amigos -->
+          <span *ngIf="u.isFriend" class="text-success small">
+            Ya son amigos
+          </span>
+
+          <!-- Botón Agregar -->
+          <button class="btn btn-outline-success btn-sm" *ngIf="!u.requestSent" (mousedown)="addFriend(u, $event)">
+            <i class="bi bi-person-plus"></i>
+          </button>
+
+          <!-- Confirmación -->
+          <span *ngIf="u.requestSent" class="text-success small">
+            Solicitud enviada
+          </span>
+        </li>
+      </ul>
     </div>
 
     <!-- Icons -->
@@ -41,24 +50,21 @@
         <button class="btn nav-link p-0" (click)="toggleNotifications($event)">
           <i class="fas fa-bell fa-lg"></i>
           <span
-            *ngIf="unreadCount"
+            *ngIf="unreadCount()"
             class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
           >
-            {{ unreadCount }}
+            {{ unreadCount() }}
           </span>
         </button>
 
         <!-- floater absoluto -->
-        <div
-          *ngIf="showNotifications"
-          class="card shadow p-0 d-flex flex-column notification-menu"
-          style="width: 300px; max-height: 240px"
-        >
+        <div *ngIf="showNotifications" class="card shadow p-0 d-flex flex-column notification-menu"
+          style="width: 300px; max-height: 240px">
           <div class="card-header flex-shrink-0 fw-bold">Notificaciones</div>
 
           <div class="list-group list-group-flush flex-grow-1 overflow-auto">
             <a
-              *ngFor="let n of notifications"
+              *ngFor="let n of notifications()"
               [routerLink]="n.link || null"
               class="list-group-item d-flex align-items-start"
               [ngClass]="{ unread: !n.read, read: n.read }"
@@ -76,7 +82,7 @@
               </div>
             </a>
             <div
-              *ngIf="!notifications.length"
+              *ngIf="!notifications().length"
               class="list-group-item text-center text-muted py-3"
             >
               No hay notificaciones
@@ -84,10 +90,7 @@
           </div>
 
           <div class="card-footer flex-shrink-0 text-center py-2">
-            <a
-              class="list-group-item list-group-item-action m-0"
-              routerLink="/notificaciones"
-            >
+            <a class="list-group-item list-group-item-action m-0" routerLink="/notificaciones">
               Ver todas
             </a>
           </div>
@@ -95,13 +98,13 @@
       </li>
       <!-- Perfil -->
       <li class="nav-item">
-        <a class="nav-link" routerLink="/profilefeed" style="cursor: pointer">
+        <a class="nav-link" (click)="openProfile()" style="cursor: pointer">
           <i class="fas fa-user fa-lg"></i>
         </a>
       </li>
       <!-- Configuración del perfil -->
       <li class="nav-item">
-        <a class="nav-link" (click)="openProfile()" style="cursor: pointer">
+        <a class="nav-link" (click)="openSettings()" style="cursor: pointer">
           <i class="fas fa-cog fa-lg"></i>
         </a>
       </li>

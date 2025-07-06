@@ -18,15 +18,15 @@
       <div class="d-flex align-items-center mb-2 justify-content-between">
         <div class="d-flex align-items-center">
           <img
-            [src]="user.photoURL"
+            [src]="post.userAvatar || user.photoURL"
             class="rounded-circle me-2"
             width="40"
             height="40"
-            alt="Avatar de {{ user.fullName }}"
+            alt="Avatar"
           />
           <div>
             <!-- Nombre usuario + mascota -->
-            <strong>{{ user.fullName }}</strong>
+            <strong>{{ post.username || user.fullName }}</strong>
             <!-- ▼ sólo si hay mascota, mostramos imagen + "con NOMBRE" -->
             <ng-container *ngIf="post.pet_id">
               <span class="d-inline-flex align-items-center ms-2">
@@ -43,7 +43,7 @@
         </div>
 
         <!-- Menú de tres puntos -->
-        <div class="dropdown">
+        <div class="dropdown" *ngIf="isOwnProfile">
           <button
             class="btn btn-link text-muted p-0"
             type="button"
@@ -85,7 +85,7 @@
               'bi bi-heart': !isLiked(post.id)
             }"
           ></i>
-          Me gusta
+          Me gusta <span class="ms-1">{{ post.likesCount || 0 }}</span>
         </button>
         <button
           type="button"

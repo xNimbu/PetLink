@@ -1,0 +1,18 @@
+<div class="container py-4">
+  <h2 class="mb-3">Notificaciones</h2>
+  <div class="list-group">
+    <a *ngFor="let n of notifications()"
+       class="list-group-item d-flex align-items-start"
+       [ngClass]="{ unread: !n.read }"
+       (click)="markAsRead(n)">
+      <img [src]="n.avatar" class="rounded-circle me-2" width="40" height="40" />
+      <div class="small">
+        <strong>{{ n.username }}</strong>
+        <div class="text-truncate">{{ n.message }}</div>
+      </div>
+    </a>
+    <div *ngIf="!notifications().length" class="list-group-item text-center text-muted">
+      No hay notificaciones
+    </div>
+  </div>
+</div>

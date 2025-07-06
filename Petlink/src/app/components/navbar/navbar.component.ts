@@ -1,15 +1,24 @@
-import { Component, HostListener, ElementRef } from '@angular/core';
+import { Component, HostListener, ElementRef, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
+import { FriendService } from '../../services/friends/friend.service';
 
-interface Notification {
+import { Notification } from '../../models';
+import { NotificationsService } from '../../services/notifications/notifications.service';
+import { ProfileService } from '../../services/profile/profile.service';
+import { AuthService } from '../../services/auth/auth.service';
+
+// Tipo para resultados de búsqueda, con flag opcional para indicar si es amigo
+interface UserResult {
+  uid: string;
   username: string;
   avatar: string;
-  message: string;
-  link?: string;
-  read: boolean;
+  isFriend?: boolean; // Indica si es amigo
+  requestSent?: boolean; // Indica si se ha enviado una solicitud de amistad
+
 }
 
 @Component({
@@ -20,44 +29,124 @@ interface Notification {
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
-  showNotifications = false;
-  query = '';
-  results: Array<{ uid: string; username: string; avatar: string }> = [];
 
-  notifications: Notification[] = [
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'le ha dado like a tu publicación', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'ha compartido una foto tuya', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'ha comentado tu foto', read: false },
-    { username: 'ilusm', avatar: '/assets/images/blacktest.jpg', message: 'le ha dado like a tu publicación', read: false }
-  ];
+
+  private notificationsService = inject(NotificationsService);
+  private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  showNotifications = false;
+
+
+  // Buscador
+  query = '';
+  results: {
+    isFriend: any;
+    requestSent: any; uid: string; username: string; avatar: string
+  }[] = [];
+  showDropdown = false;
+
+  /** Lista reactiva de notificaciones */
+  notifications = this.notificationsService.notifications;
+  /** Contador de no leídas */
+  unreadCount = this.notificationsService.unreadCount;
 
   constructor(
     private router: Router,
     private host: ElementRef,
-    private http: HttpClient
-  ) { }
+    private http: HttpClient,
+    private friendService: FriendService
+  ) {
+    /* ① cargar amigos una sola vez */
+    this.friendService.list().subscribe(resp => {
+      resp.friends.forEach(f => this.friendService.add(f.uid));
+    });
+  }
 
-  onSearch() {
-    if (!this.query.trim()) {
+  // Busqueda
+  openDropdown() {
+    console.log('focus en buscador');
+    this.showDropdown = true;
+    if (this.query.trim()) this.onSearch();
+  }
+
+  onSearch(): void {
+    const q = this.query.trim();
+    if (q.length < 2) {
       this.results = [];
       return;
     }
-    this.http.get<any[]>(`/api/profile_list/?q=${encodeURIComponent(this.query)}`)
-      .subscribe(data => this.results = data);
+
+    this.http.get<UserResult[]>(`${environment.backendUrl}/profile_list/?q=${encodeURIComponent(q)}`)
+      .subscribe(res => {
+        console.log('resultados', res);
+        this.results = res.map(u => ({ ...u, isFriend: this.friendService.has(u.uid), requestSent: false })); // Añadir requestSent por defecto
+      });
+
+    // Listar perfiles
+    
+  }
+
+  // Cerrar dropdown
+  closeDropdown() {
+    this.showDropdown = false;
+  }
+
+  // Enviar solicitud de amistad
+  addFriend(u: UserResult, ev: MouseEvent) {
+    ev.stopPropagation(); // evita navegar
+    if (u.requestSent) return; // Si ya se ha enviado, no hacer nada
+
+    this.friendService.add(u.uid).subscribe({
+      next: () => u.requestSent = true, // Marcar como solicitud enviada
+      error: () => alert('Error al enviar solicitud de amistad')
+    });
+  }
+
+  // Ir al perfil del usuario seleccionado
+  goToProfile(u: { uid: string; }): void {
+    this.closeDropdown();
+    this.query = '';
+    this.router.navigate(['/profilefeed', u.uid]); // Ajustar ruta si es distinta
+  }
+
+  // Click fuera para cerrar el dropdown
+  @HostListener('document:click', ['$event.target'])
+  onDocClick(target: HTMLElement) {
+    if (!this.host.nativeElement.contains(target)) {
+      this.closeDropdown();
+      this.showNotifications = false; // Cerrar notificaciones si se hace click fuera
+    }
   }
 
   openHome(): void {
     this.router.navigate(['/home']);
   }
 
+  openSettings(): void {
+    this.router.navigate(['/settings']);
+  }
+
   openProfile(): void {
-    this.router.navigate(['/profile']);
+    this.profileService.getProfile()
+      .then(profile => {
+        const target = profile.username || profile.uid;
+        this.router.navigate(['/profile', target]);
+      })
+      .catch(() => {
+        const uid = this.authService.uid;
+        if (uid) {
+          this.router.navigate(['/profile', uid]);
+        }
+      });
   }
 
   toggleNotifications(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.notificationsService.fetch();
+    }
   }
 
   /**
@@ -67,7 +156,7 @@ export class NavbarComponent {
     event.preventDefault();
     event.stopPropagation();
     if (!notification.read) {
-      notification.read = true;
+      this.notificationsService.markAsRead(notification);
     }
   }
 
@@ -76,9 +165,5 @@ export class NavbarComponent {
     if (!this.host.nativeElement.contains(target)) {
       this.showNotifications = false;
     }
-  }
-
-  get unreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
   }
 }
