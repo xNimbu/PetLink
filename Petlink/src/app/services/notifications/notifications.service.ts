@@ -1,6 +1,6 @@
 import { Injectable, computed, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { filter, first } from 'rxjs';
+import { filter } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Notification } from '../../models';
 import { AuthService } from '../auth/auth.service';
@@ -23,7 +23,9 @@ export class NotificationsService {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.auth.ready$.pipe(filter(r => r), first()).subscribe(() => this.fetch());
+      this.auth.ready$
+        .pipe(filter(() => this.auth.isLoggedIn))
+        .subscribe(() => this.fetch());
     }
   }
 
