@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { LoadingComponent } from './components/loading/loading.component';
 import { LoadingService } from './services/loading/loading.service';
-import { filter } from 'rxjs';
+import { delay, filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -16,17 +16,20 @@ import { filter } from 'rxjs';
 export class AppComponent {
   title = 'Petlink';
   showNavbar = true;
-
-  loading$ = inject(LoadingService).loading$;
-
+  loading$ = inject(LoadingService)
+               .loading$
+               .pipe(delay(0));
   private router = inject(Router)
 
   ngOnInit() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.showNavbar = e.urlAfterRedirects !== '/login'&&
-         e.urlAfterRedirects !== '/register';
+        setTimeout(() => {
+          this.showNavbar =
+            e.urlAfterRedirects !== '/login' &&
+            e.urlAfterRedirects !== '/register';
+        });
       });
   }
 }

@@ -1,5 +1,5 @@
-@if (showNavbar) {
-    <app-navbar/>
-}
-<app-loading *ngIf="loading$ | async" />
-<router-outlet />
+<app-navbar *ngIf="showNavbar"></app-navbar>
+
+<app-loading *ngIf="loading$ | async"></app-loading>
+
+<router-outlet></router-outlet>
