@@ -1,4 +1,19 @@
-.bg-custom{
-  background-color: rgba(94, 130, 105, 0.226);
+body {
+  min-height: 100vh;  width: 100%;
+  position: relative;
+  background-color: #ffffff;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #10b981 100%);
+  background-size: 100% 100%;
+}
+
+.bg-custom {
   min-height: 100vh;
+  position: relative;
 }
