@@ -61,15 +61,15 @@ export class PostsComponent implements OnInit, OnChanges {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-
-    
-
-    // Datos del usuario actual para comentar
+    // Datos del usuario actual para comentar y para inicializar el feed
     this.profileService.getProfile().then(p => {
       this.viewerUid = p.uid;
       this.viewerUsername = p.username;
-    }).catch(() => { });
-    this.initFeed();
+      this.user = p; // cachear para usarlo en el feed si es necesario
+      this.initFeed();
+    }).catch(() => {
+      this.initFeed();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -88,80 +88,87 @@ export class PostsComponent implements OnInit, OnChanges {
     this.subscriptions.unsubscribe();
   }
 
-private initFeed(): void {
-  // Si es feed de amigos, solo obtenemos el perfil propio una vez
-  if (this.friendsFeed) {
-    this.isOwnProfile = false;
+  private initFeed(): void {
+    // Si es feed de amigos, solo obtenemos el perfil propio una vez
+    if (this.friendsFeed) {
+      this.isOwnProfile = false;
 
-    // 1) Carga inicial de perfil y posts de amigos
+      // 1) Carga inicial de perfil y posts de amigos
+      this.subscriptions.add(
+        this.authService.ready$.pipe(
+          filter(r => r),
+          first(),
+          switchMap(() => this.profileService.getProfile())
+        ).subscribe({
+          next: profile => {
+            this.user = profile;
+            this.loadFriendsPosts();
+          },
+          error: err => {
+            console.error('Error cargando feed', err);
+            this.errorMsg = 'No se pudo cargar el feed.';
+            this.loading = false;
+          }
+
+        })
+      );
+
+      // 2) Suscribirse a postCreated$ para recargar SOLO cuando YO subo un post
+      this.subscriptions.add(
+        this.postsService.postCreated$
+          .subscribe(() => {
+            console.log('🔄 [PostsComponent] recargando feed de amigos tras crear post propio');
+            this.loadFriendsPosts();
+          })
+      );
+
+      return;
+    }
+
+
+    this.isOwnProfile = true;
+    if (this.user) {
+      this.loadPosts(this.user);
+    }
+    
+    // Si es mi propio perfil, recargo posts al crear uno
+    if (!this.uid || this.uid === this.authService.uid) {
+      console.log('🟢 [PostsComponent] suscribiendo a postCreated$ en propio perfil');
+      this.subscriptions.add(
+        this.postsService.postCreated$
+          .subscribe(() => {
+            console.log('🔄 [PostsComponent] recargando posts tras crear uno propio');
+            this.loadPosts(this.user);
+          })
+      );
+    }
+
+    // Luego cargo inicial de perfil (público o propio) y sus posts
     this.subscriptions.add(
       this.authService.ready$.pipe(
-        filter(r => r),
+        filter(ready => ready),
         first(),
-        switchMap(() => this.profileService.getProfile())
+        switchMap(() => {
+          if (this.uid && this.uid !== this.authService.uid) {
+            this.isOwnProfile = false;
+            return this.profileService.getPublicProfile(this.uid);
+          }
+          this.isOwnProfile = true;
+          return this.profileService.getProfile();
+        })
       ).subscribe({
         next: profile => {
           this.user = profile;
-          this.loadFriendsPosts();
+          this.loadPosts(profile);
         },
         error: err => {
-          console.error('Error cargando feed', err);
-          this.errorMsg = 'No se pudo cargar el feed.';
+          console.error('Error cargando perfil', err);
+          this.errorMsg = 'No se pudo cargar tu perfil.';
           this.loading = false;
         }
       })
     );
-
-    // 2) Suscribirse a postCreated$ para recargar SOLO cuando YO subo un post
-    this.subscriptions.add(
-      this.postsService.postCreated$
-        .subscribe(() => {
-          console.log('🔄 [PostsComponent] recargando feed de amigos tras crear post propio');
-          this.loadFriendsPosts();
-        })
-    );
-
-    return;
   }
-
-  // Si es mi propio perfil, recargo posts al crear uno
-  if (!this.uid || this.uid === this.authService.uid) {
-    console.log('🟢 [PostsComponent] suscribiendo a postCreated$ en propio perfil');
-    this.subscriptions.add(
-      this.postsService.postCreated$
-        .subscribe(() => {
-          console.log('🔄 [PostsComponent] recargando posts tras crear uno propio');
-          this.loadPosts(this.user);
-        })
-    );
-  }
-
-  // Luego cargo inicial de perfil (público o propio) y sus posts
-  this.subscriptions.add(
-    this.authService.ready$.pipe(
-      filter(ready => ready),
-      first(),
-      switchMap(() => {
-        if (this.uid && this.uid !== this.authService.uid) {
-          this.isOwnProfile = false;
-          return this.profileService.getPublicProfile(this.uid);
-        }
-        this.isOwnProfile = true;
-        return this.profileService.getProfile();
-      })
-    ).subscribe({
-      next: profile => {
-        this.user = profile;
-        this.loadPosts(profile);
-      },
-      error: err => {
-        console.error('Error cargando perfil', err);
-        this.errorMsg = 'No se pudo cargar tu perfil.';
-        this.loading = false;
-      }
-    })
-  );
-}
 
 
 
@@ -291,7 +298,7 @@ private initFeed(): void {
       error: err => console.error('Error al enviar comentario', err)
     });
   }
-  
+
   /** Entra en modo edición para un comentario */
   public enableEdit(commentId: string, currentText: string): void {
     this.editMode[commentId] = true;

@@ -7,6 +7,7 @@
     <div class="row gx-0 w-100">
       <div class="col-12 col-md-6 d-flex justify-content-center align-items-center mx-auto">
         <div class="card bg-white bg-opacity-75 border-0 shadow-lg rounded-3 p-4 text-center w-100" style="max-width:400px;">
+          <ng-container *ngIf="step === 1; else stepTwo">
           <h2 class="mb-4">¿No tienes cuenta?<br/>Regístrate</h2>
 
           <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
@@ -83,6 +84,34 @@
               Iniciar sesión
             </button>
           </div>
+          </ng-container>
+          <ng-template #stepTwo>
+            <h2 class="mb-4">Completa tu perfil</h2>
+            <form [formGroup]="profileForm" (ngSubmit)="completeProfile()">
+              <div class="mb-3 text-start">
+                <input formControlName="username"
+                       type="text"
+                       placeholder="Nombre de usuario"
+                       class="form-control rounded-pill"
+                       [class.is-invalid]="profileForm.get('username')?.invalid && profileForm.get('username')?.touched" />
+                <div *ngIf="profileForm.get('username')?.invalid && profileForm.get('username')?.touched"
+                     class="invalid-feedback">
+                  El usuario es obligatorio.
+                </div>
+              </div>
+              <div class="mb-3 text-start">
+                <input formControlName="phone"
+                       type="text"
+                       placeholder="Teléfono"
+                       class="form-control rounded-pill" />
+              </div>
+              <button type="submit"
+                      class="btn btn-success rounded-pill w-100"
+                      [disabled]="loading">
+                {{ loading ? 'Guardando...' : 'Completar' }}
+              </button>
+            </form>
+          </ng-template>
         </div>
       </div>
     </div>

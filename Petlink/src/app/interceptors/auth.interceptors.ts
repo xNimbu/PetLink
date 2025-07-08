@@ -37,6 +37,11 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(authReq);
     }
 
+    // Si aún no hay usuario autenticado, dejamos pasar la petición sin modificar
+    if (!this.authService.uid) {
+      return next.handle(req);
+    }
+
     // from convierte la Promise<string> en Observable<string>
     return from(this.authService.getIdToken()).pipe(
       mergeMap(t => {
