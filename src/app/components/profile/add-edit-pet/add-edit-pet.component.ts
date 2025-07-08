@@ -8,7 +8,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './add-edit-pet.component.html',
-  styleUrl: './add-edit-pet.component.scss',
+  styleUrls: ['./add-edit-pet.component.scss'],
 })
 export class AddEditPetModalComponent {
   @Input() pet: any = null;
@@ -36,6 +36,7 @@ export class AddEditPetModalComponent {
   ngOnInit(): void {
     if (this.mode === 'edit' && this.pet) {
       this.form.patchValue(this.pet);
+      this.previewUrl = this.pet.photoURL || null;
     }
   }
 
@@ -65,9 +66,24 @@ export class AddEditPetModalComponent {
   }
 
   private finalizeSave(): void {
-    if (this.form.valid) {
-      this.activeModal.close(this.form.value);
+    if (!this.form.valid) {
+      this.uploading = false;
+      return;
     }
+
+    const formData = new FormData();
+    formData.append('name', this.form.value.name);
+    formData.append('breed', this.form.value.breed);
+    formData.append('age', this.form.value.age);
+    formData.append('type', this.form.value.type);
+
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile, this.selectedFile.name);
+    } else if (this.form.value.photoURL) {
+      formData.append('photoURL', this.form.value.photoURL);
+    }
+
+    this.activeModal.close(formData);
     this.uploading = false;
   }
 
