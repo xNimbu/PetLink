@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/petlink",
+    "public": "dist/petlink/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
