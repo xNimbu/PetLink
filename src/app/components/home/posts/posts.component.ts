@@ -11,11 +11,12 @@ import { CommentPostService } from '../../../services/commentsPost/comment-post.
 import { Profile } from '../../../models/profile/profile.model';
 import { Post } from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
 import { filter, first, Subscription, switchMap } from 'rxjs';
+import { LoadingComponent } from "../../loading/loading.component";
 
 @Component({
   selector: 'app-posts',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoadingComponent],
   templateUrl: './posts.component.html',
   styleUrl: './posts.component.scss'
 })
