@@ -22,13 +22,13 @@ export class PetsService {
   }
 
   /** Agregar nueva mascota */
-  addPet(formData: FormData): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>(`${this.base}/`, formData, this.auth.formOptions());
+  addPet(data: any): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`${this.base}/`, data, this.auth.jsonOptions());
   }
 
   /** Editar mascota existente */
-  updatePet(id: string, formData: FormData): Observable<any> {
-    return this.http.put(`${this.base}/${id}/`, formData, this.auth.formOptions());
+  updatePet(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.base}/${id}/`, data, this.auth.jsonOptions());
   }
 
   /** Eliminar mascota */

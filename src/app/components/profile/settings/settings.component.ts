@@ -85,8 +85,8 @@ openAddPetModal(): void {
   const modalRef = this.modalService.open(AddEditPetModalComponent);
   modalRef.componentInstance.mode = 'add';
   modalRef.result
-    .then((formData: FormData) => {
-      this.petsService.addPet(formData).subscribe({
+    .then((data: any) => {
+      this.petsService.addPet(data).subscribe({
         next: () => this.refreshPets(),
         error: err => console.error('Error agregando mascota:', err)
       });
@@ -100,8 +100,8 @@ openEditPetModal(pet: Pet): void {
   modalRef.componentInstance.mode = 'edit';
   modalRef.componentInstance.pet = pet;
   modalRef.result
-    .then((formData: FormData) => {
-      this.petsService.updatePet(pet.id, formData).subscribe({
+    .then((data: any) => {
+      this.petsService.updatePet(pet.id, data).subscribe({
         next: () => this.refreshPets(),
         error: err => console.error('Error actualizando mascota:', err)
       });
