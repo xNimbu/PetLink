@@ -8,6 +8,7 @@ import { PostsService } from '../../../services/posts/posts.service';
 import { Pet, Profile } from '../../../models';
 import { AuthService } from '../../../services/auth/auth.service';
 import { catchError, filter, first, switchMap, of } from 'rxjs';
+import { LoadingService } from '../../../services/loading/loading.service';
 
 @Component({
   selector: 'app-add-post',
@@ -35,11 +36,14 @@ export class AddPostComponent {
   private postsService = inject(PostsService);
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
+  private loadingService = inject(LoadingService);
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
+
+    this.loadingService.show();
 
     this.petsService.listPets()
       .pipe(
@@ -56,9 +60,11 @@ export class AddPostComponent {
         } else {
           this.pets = [];
         }
+        this.loadingService.hide();
       });
 
 
+    this.loadingService.show();
     this.authService.ready$
       .pipe(
         filter(ready => ready),
@@ -66,6 +72,7 @@ export class AddPostComponent {
         switchMap(() => this.profileService.getProfile()),
         catchError(err => {
           console.error('Error cargando perfil', err);
+          this.loadingService.hide();
           return of<Profile | null>(null);
         })
       )
@@ -80,6 +87,7 @@ export class AddPostComponent {
           { label: 'Teléfono', value: profile.phone ? profile.phone : 'No disponible' },
           { label: 'Tipo de usuario', value: profile.role }
         ];
+        this.loadingService.hide();
       });
   }
 
@@ -116,12 +124,17 @@ export class AddPostComponent {
       formData.append('pet_id', this.selectedPet.id);
     }
 
+    this.loadingService.show();
     this.postsService.createPostWithImage(formData).subscribe({
           next: () => {
       this.postCreated.emit();
       this.cancel();
     },
-      error: err => console.error('Error creando post', err)
+      error: err => {
+        console.error('Error creando post', err);
+        this.loadingService.hide();
+      },
+      complete: () => this.loadingService.hide()
     });
   }
 }

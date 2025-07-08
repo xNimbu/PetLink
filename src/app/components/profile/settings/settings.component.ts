@@ -11,6 +11,7 @@ import { ProfileService } from '../../../services/profile/profile.service';
 import { PetsService } from '../../../services/pets/pets.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { Pet, Profile } from '../../../models';
+import { LoadingService } from '../../../services/loading/loading.service';
 
 @Component({
   selector: 'app-settings',
@@ -30,6 +31,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private authService    = inject(AuthService);
   private modalService   = inject(NgbModal);
   private platformId     = inject(PLATFORM_ID);
+  private loadingService = inject(LoadingService);
   private subs = new Subscription();
 
   ngOnInit(): void {
@@ -37,6 +39,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.loading = false;
       return;
     }
+
+    this.loadingService.show();
 
     this.subs = this.authService.ready$
       .pipe(
@@ -47,11 +51,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
           console.error('Error al cargar perfil:', err);
           this.errorMsg = 'No se pudo cargar tu perfil.';
           this.loading = false;
+          this.loadingService.hide();
           return of<Profile | null>(null);
         })
       )
       .subscribe(profile => {
         this.loading = false;
+        this.loadingService.hide();
         if (!profile) return;
         this.user = profile;
         this.pets = profile.pets ?? [];
