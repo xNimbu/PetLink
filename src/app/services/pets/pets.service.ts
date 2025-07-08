@@ -22,10 +22,9 @@ export class PetsService {
   }
 
   /** Agregar nueva mascota */
-addPet(form: FormData): Observable<Pet> {
-  // Cambia el tipo de retorno a Pet en lugar de { id }
-  return this.http.post<Pet>(`${this.base}/`, form);
-}
+  addPet(formData: FormData): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`${this.base}/`, formData, this.auth.formOptions());
+  }
 
   /** Editar mascota existente */
   updatePet(id: string, formData: FormData): Observable<any> {

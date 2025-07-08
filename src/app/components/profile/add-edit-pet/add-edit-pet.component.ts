@@ -74,7 +74,7 @@ export class AddEditPetModalComponent {
     const formData = new FormData();
     formData.append('name', this.form.value.name);
     formData.append('breed', this.form.value.breed);
-    formData.append('age', this.form.value.age);
+    formData.append('age', String(this.form.value.age));
     formData.append('type', this.form.value.type);
 
     if (this.selectedFile) {

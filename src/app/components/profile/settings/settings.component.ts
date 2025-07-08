@@ -87,10 +87,7 @@ openAddPetModal(): void {
   modalRef.result
     .then((formData: FormData) => {
       this.petsService.addPet(formData).subscribe({
-        next: (nuevoPet: Pet) => {
-          // Insertamos directamente el Pet que devuelve el backend
-          this.pets = [...this.pets, nuevoPet];
-        },
+        next: () => this.refreshPets(),
         error: err => console.error('Error agregando mascota:', err)
       });
     })
@@ -105,12 +102,7 @@ openEditPetModal(pet: Pet): void {
   modalRef.result
     .then((formData: FormData) => {
       this.petsService.updatePet(pet.id, formData).subscribe({
-        next: (petActualizado: Pet) => {
-          // Reemplazamos solo el elemento editado en el array
-          this.pets = this.pets.map(p =>
-            p.id === pet.id ? petActualizado : p
-          );
-        },
+        next: () => this.refreshPets(),
         error: err => console.error('Error actualizando mascota:', err)
       });
     })
@@ -121,10 +113,7 @@ openEditPetModal(pet: Pet): void {
   deletePet(id: string): void {
     if (!confirm('¿Eliminar esta mascota?')) return;
     this.petsService.deletePet(id).subscribe({
-      next: () => {
-        // Filtramos la mascota eliminada
-        this.pets = this.pets.filter(p => p.id !== id);
-      },
+      next: () => this.refreshPets(),
       error: err => console.error('Error eliminando mascota', err)
     });
   }
@@ -132,5 +121,14 @@ openEditPetModal(pet: Pet): void {
   logout(): void {
     this.authService.logout();
     window.location.href = '/login';
+  }
+
+  private refreshPets(): void {
+    this.petsService.listPets().subscribe({
+      next: (resp: any) => {
+        this.pets = Array.isArray(resp) ? resp : resp.pets ?? [];
+      },
+      error: err => console.error('Error recargando mascotas', err),
+    });
   }
 }
