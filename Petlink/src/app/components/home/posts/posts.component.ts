@@ -274,7 +274,8 @@ private initFeed(): void {
           userId: this.viewerUid,
           username: this.viewerUsername,
           message,
-          timestamp: now
+          timestamp: now,
+          photoURL: this.user?.photoURL || ''
         };
 
         // Lo añadimos al post correspondiente
