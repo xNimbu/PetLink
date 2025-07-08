@@ -59,10 +59,21 @@ export class AuthService {
         .catch(e => console.warn('No se pudo setear persistencia:', e));
 
       // 3️⃣ Escucho cambios de estado
-      authState(this.auth).subscribe(user => {
+      authState(this.auth).subscribe(async user => {
         this._currentUser.next(user);
+
+        if (user) {
+          try {
+            const token = await user.getIdToken();
+            this.persistToken(token); // 🔐 << asegura que se guarde el token correctamente
+          } catch (e) {
+            console.warn('No se pudo obtener el token tras cambio de authState:', e);
+          }
+        }
+
         this.readySubject.next(true);
       });
+
 
       // 2. Cada vez que Firebase renueve el token, lo persistimos
       onIdTokenChanged(this.auth, user => {
@@ -84,12 +95,23 @@ export class AuthService {
 
   async getIdToken(): Promise<string> {
     if (this.idToken) return this.idToken;
-    const user = await firstValueFrom(authState(this.auth));
-    if (!user) throw new Error('No hay usuario autenticado');
-    const token = await user.getIdToken();
+
+    const user = this._currentUser.value;
+
+    if (user) {
+      const token = await user.getIdToken();
+      this.persistToken(token);
+      return token;
+    }
+
+    const userFromState = await firstValueFrom(authState(this.auth));
+    if (!userFromState) throw new Error('No hay usuario autenticado');
+
+    const token = await userFromState.getIdToken();
     this.persistToken(token);
     return token;
   }
+
 
   private buildHeaders(includeAuth = false): HttpHeaders {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
