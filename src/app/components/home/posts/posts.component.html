@@ -1,9 +1,4 @@
 <div class="container py-4">
-  <!-- Loader -->
-  <div *ngIf="loading" class="text-center my-5">
-    <div class="spinner-border" role="status"></div>
-  </div>
-
   <!-- Error -->
   <div *ngIf="!loading && errorMsg" class="alert alert-danger">
     {{ errorMsg }}
