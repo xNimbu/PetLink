@@ -19,6 +19,7 @@
     </li>
   </ul>
 </div>
+<div *ngIf="!friends.length" class="chat-sidebar bg-white shadow-sm p-3 text-center text-muted">Aún no tienes amigos. Busca usuarios para conectar.</div>
 
 <!-- Ventana de chat -->
 <div *ngIf="selectedChat && currentRoomId" class="chat-window card shadow">

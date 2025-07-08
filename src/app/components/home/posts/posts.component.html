@@ -1,9 +1,4 @@
 <div class="container py-4">
-  <!-- Loader -->
-  <div *ngIf="loading" class="text-center my-5">
-    <div class="spinner-border" role="status"></div>
-  </div>
-
   <!-- Error -->
   <div *ngIf="!loading && errorMsg" class="alert alert-danger">
     {{ errorMsg }}
@@ -179,4 +174,11 @@
   <ng-template #noComments>
     <p class="text-muted">Sé el primero en comentar este post.</p>
   </ng-template>
+</div>
+  </div>
+  </ng-container>
+  <!-- Sin posts -->
+  <div *ngIf="!loading && !errorMsg && !posts.length" class="text-center text-muted my-5">
+    Aún no hay publicaciones. ¡Sigue a otros usuarios o crea tu primer post!
+  </div>
 </div>
