@@ -19,11 +19,39 @@ export class FriendService {
   private baseUrl = environment.backendUrl;
   private friendsSet: Set<string> = new Set<string>();
 
+  // Utilidades
+  // Guarda en caché la lista de amigos
+  //cache(uids: string[]) {
+  //  this.friendsSet = new Set(uids);
+  //}
+
   constructor(
     private http: HttpClient,
     private auth: AuthService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
+
+  // Obtiene y cachea la lista de amigos del usuario
+  cacheFriends(): Observable<{ friends: Friend[] }> {
+    return new Observable(observer => {
+      this.http.get<{ friends: Friend[] }>(
+        `${this.baseUrl}/profile/friends/`,
+        this.auth.getAuthHeaders()
+      ).subscribe({
+        next: res => {
+          res.friends.forEach(f => this.friendsSet.add(f.uid));
+          observer.next(res);
+          observer.complete();
+        },
+        error: err => observer.error(err)
+      });
+    });
+  }
+
+  // Verifica si un uid ya está en la lista de amigos
+  has(uid: string): boolean {
+    return this.friendsSet.has(uid);
+  }
 
   list(): Observable<{ friends: Friend[] }> {
     return this.http.get<{ friends: Friend[] }>(
@@ -57,8 +85,5 @@ export class FriendService {
       { uid: toUid },
       this.auth.getAuthHeaders()
     );
-  }
-  has(uid: string): boolean {
-    return this.friendsSet.has(uid);
   }
 }

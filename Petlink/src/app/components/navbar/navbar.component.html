@@ -31,7 +31,7 @@
           </span>
 
           <!-- Botón Agregar -->
-          <button class="btn btn-outline-success btn-sm" *ngIf="!u.requestSent" (mousedown)="addFriend(u, $event)">
+          <button class="btn btn-outline-success btn-sm" *ngIf="!u.isFriend && !u.requestSent" (mousedown)="addFriend(u, $event)">
             <i class="bi bi-person-plus"></i>
           </button>
 

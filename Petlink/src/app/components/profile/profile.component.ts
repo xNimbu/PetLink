@@ -1,4 +1,4 @@
-// src/app/components/profile/profilefeed/profilefeed.component.ts
+/// src/app/components/profile/profilefeed/profilefeed.component.ts
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -60,6 +60,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Cachear amigos al cargar el componente
+    this.subs.add(
+      this.friendService.cacheFriends().subscribe()
+    );
+
     this.subs.add(
       this.route.paramMap
         .pipe(
@@ -98,9 +103,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .map(p => p.photoURL!);
           this.friends = profile.friends ?? [];
           if (!this.isOwnProfile) {
-            this.friendService.list().subscribe(resp => {
-              this.isFriend = resp.friends.some(f => f.uid === profile.uid);
-            });
+            this.isFriend = this.friendService.has(profile.uid);
+            //this.friendService.list().subscribe(resp => {
+            //this.isFriend = resp.friends.some(f => f.uid === profile.uid);
+            //});
           }
           this.loading = false;
         })
@@ -118,15 +124,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   addFriend(): void {
     if (!this.user) return;
-    this.friendService.add(this.user.uid).subscribe(() => {
-      this.isFriend = true;
+
+    this.authService.ready$.pipe(
+      filter(r => r), first()
+    ).subscribe(() => {
+      const targetUid = this.user.uid ?? (this.user as any).id;
+      if (!targetUid) { alert('No se encontró UID del perfil'); return; }
+
+      this.friendService.add(targetUid).subscribe({
+        next: () => { this.isFriend = true; },
+        error: () => alert('No se pudo enviar la solicitud de amistad.')
+      });
     });
   }
 
   removeFriend(): void {
     if (!this.user) return;
-    this.friendService.remove(this.user.uid).subscribe(() => {
-      this.isFriend = false;
+    if (!confirm('¿Estás seguro de que quieres eliminar a este amigo?')) return;
+
+    this.friendService.remove(this.user.uid).subscribe({
+      next: () => this.isFriend = false,
+      error: () => alert('No se pudo eliminar al amigo.')
     });
   }
 
@@ -134,7 +152,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.profileFields = [
       { label: 'Nombre completo', value: this.user.fullName },
       { label: 'Correo electrónico', value: this.user.email },
-      { label: 'Teléfono', value: this.user.phone? this.user.phone : 'No disponible' },
+      { label: 'Teléfono', value: this.user.phone ? this.user.phone : 'No disponible' },
       { label: 'Tipo de usuario', value: this.user.role }
     ];
   }

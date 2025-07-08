@@ -56,10 +56,11 @@ export class NavbarComponent {
     private http: HttpClient,
     private friendService: FriendService
   ) {
+    this.friendService.cacheFriends().subscribe(); // Carga amigos al iniciar
     /* ① cargar amigos una sola vez */
-    this.friendService.list().subscribe(resp => {
-      resp.friends.forEach(f => this.friendService.add(f.uid));
-    });
+    //this.friendService.list().subscribe(resp => {
+    //  resp.friends.forEach(f => this.friendService.add(f.uid));
+    //});
   }
 
   // Busqueda
@@ -69,9 +70,10 @@ export class NavbarComponent {
     if (this.query.trim()) this.onSearch();
   }
 
+  // TODO: Corregir el length
   onSearch(): void {
     const q = this.query.trim();
-    if (q.length < 2) {
+    if (q.length < 1) {
       this.results = [];
       return;
     }
@@ -160,6 +162,7 @@ export class NavbarComponent {
     }
   }
 
+  // TODO: implementarlo correctamente vvvvv
   @HostListener('document:click', ['$event.target'])
   onClickOutside(target: HTMLElement): void {
     if (!this.host.nativeElement.contains(target)) {
