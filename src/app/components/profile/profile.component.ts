@@ -21,6 +21,7 @@ import { AddPostComponent } from '../home/add-post/add-post.component';
 import { Profile } from '../../models/profile/profile.model';
 import { Pet } from '../../models/pet/pet.model';
 import { Friend } from '../../models/friend/friend.model';
+import { LoadingService } from '../../services/loading/loading.service';
 
 @Component({
   selector: 'app-profile',
@@ -51,6 +52,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private friendService = inject(FriendService);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
+  private loadingService = inject(LoadingService);
   private subs = new Subscription();
 
   ngOnInit(): void {
@@ -59,6 +61,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.loading = false;
       return;
     }
+
+    this.loadingService.show();
 
     this.subs.add(
       this.route.paramMap
@@ -82,6 +86,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 console.error('Error al cargar perfil:', err);
                 this.errorMsg = 'No se pudo cargar el perfil.';
                 this.loading = false;
+                this.loadingService.hide();
                 return of<Profile | null>(null);
               })
             )
@@ -108,6 +113,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
           }
           this.loading = false;
+          this.loadingService.hide();
         })
     );
   }

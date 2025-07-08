@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { LoadingService } from '../../services/loading/loading.service';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +25,8 @@ export class LoginComponent {
     private authService: AuthService,
     private toastr: ToastrService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private loadingService: LoadingService
   ) { }
 
   ngOnInit() {
@@ -45,6 +47,7 @@ export class LoginComponent {
     }
     const { email, password } = this.loginForm.value;
     this.loading = true;
+    this.loadingService.show();
     try {
       await this.authService.loginWithEmail(email, password);
       this.toastr.success('¡Login exitoso!', 'Bienvenido');
@@ -53,6 +56,7 @@ export class LoginComponent {
       this.toastr.error(err.message || 'Error al iniciar sesión', 'Falló Login');
     } finally {
       this.loading = false;
+      this.loadingService.hide();
     }
   }
 
@@ -62,6 +66,7 @@ export class LoginComponent {
 
   async onLoginGoogle() {
     this.loading = true;
+    this.loadingService.show();
     try {
       await this.authService.loginWithGoogle();
       this.toastr.success('¡Login con Google exitoso!', 'Bienvenido');
@@ -70,6 +75,7 @@ export class LoginComponent {
       this.toastr.error(err.message || 'Error en Google Auth', 'Falló Login');
     } finally {
       this.loading = false;
+      this.loadingService.hide();
     }
   }
 }

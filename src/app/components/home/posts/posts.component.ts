@@ -11,12 +11,12 @@ import { CommentPostService } from '../../../services/commentsPost/comment-post.
 import { Profile } from '../../../models/profile/profile.model';
 import { Post } from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
 import { filter, first, Subscription, switchMap } from 'rxjs';
-import { LoadingComponent } from "../../loading/loading.component";
+import { LoadingService } from '../../services/loading/loading.service';
 
 @Component({
   selector: 'app-posts',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './posts.component.html',
   styleUrl: './posts.component.scss'
 })
@@ -54,6 +54,7 @@ export class PostsComponent implements OnInit, OnChanges {
   private postsService = inject(PostsService);
   private authService = inject(AuthService);
   private commentService = inject(CommentPostService);
+  private loadingService = inject(LoadingService);
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
@@ -176,6 +177,7 @@ export class PostsComponent implements OnInit, OnChanges {
   /** Trae todos los posts para el perfil actual */
   private loadPosts(profile: Profile): void {
     this.loading = true;
+    this.loadingService.show();
     let source: any;
     if (this.isOwnProfile) {
       source = this.postsService.getUserPosts();
@@ -189,6 +191,7 @@ export class PostsComponent implements OnInit, OnChanges {
         error: (err: Post[]) => {
           console.error('Error cargando posts', err);
           this.loading = false;
+          this.loadingService.hide();
         }
       });
     } else {
@@ -199,11 +202,13 @@ export class PostsComponent implements OnInit, OnChanges {
 
   private loadFriendsPosts(): void {
     this.loading = true;
+    this.loadingService.show();
     this.postsService.getFriendsPosts().subscribe({
       next: (data: Post[]) => this.populatePosts(data, null),
       error: err => {
         console.error('Error cargando posts', err);
         this.loading = false;
+        this.loadingService.hide();
       }
     });
   }
@@ -227,6 +232,7 @@ export class PostsComponent implements OnInit, OnChanges {
     });
     this.postsChange.emit(this.posts);
     this.loading = false;
+    this.loadingService.hide();
   }
 
   /** Alterna el estado de “like” usando el backend */
