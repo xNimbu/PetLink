@@ -1,0 +1,29 @@
+<!-- Contenedor a pantalla completa -->
+<div class="position-fixed top-0 start-0 w-100 h-100 d-flex
+            align-items-center justify-content-center
+            bg-black bg-opacity-75" style="z-index:1055">
+
+    <!-- Botón cerrar -->
+    <button class="btn text-white fs-2 position-absolute top-0 start-0 m-3
+                 border-0 bg-transparent" aria-label="Cerrar" (click)="activeModal.dismiss()">
+        &times;
+    </button>
+
+    <!-- Flecha izquierda -->
+    <button *ngIf="photos.length>1" class="btn text-white fs-1 position-absolute
+                 top-50 start-0 translate-middle-y
+                 border-0 bg-transparent px-2" (click)="prev()">
+        &#8249;
+    </button>
+
+    <!-- Imagen -->
+    <img [src]="photos[index]" class="img-fluid viewer-img" />
+
+    <!-- Flecha derecha -->
+    <button *ngIf="photos.length>1" class="btn text-white fs-1 position-absolute
+                 top-50 end-0 translate-middle-y
+                 border-0 bg-transparent px-2" (click)="next()">
+        &#8250;
+    </button>
+
+</div>
