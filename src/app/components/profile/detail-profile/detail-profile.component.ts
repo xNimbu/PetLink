@@ -1,7 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { PhotoViewerComponent } from '../../photo-viewer/photo-viewer.component';
+import { PhotoViewerComponent } from '../../../../../Petlink/src/app/components/photo-viewer/photo-viewer.component';
+
 
 @Component({
   selector   : 'app-detail-profile',

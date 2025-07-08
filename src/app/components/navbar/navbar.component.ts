@@ -57,13 +57,11 @@ export class NavbarComponent {
     private http: HttpClient,
     private friendService: FriendService
   ) {
-<<<<<<< HEAD:Petlink/src/app/components/navbar/navbar.component.ts
     this.friendService.cacheFriends().subscribe(); // Carga amigos al iniciar
     /* ① cargar amigos una sola vez */
     //this.friendService.list().subscribe(resp => {
     //  resp.friends.forEach(f => this.friendService.add(f.uid));
     //});
-=======
     /* ① cargar amigos una sola vez solo si hay sesión en el navegador */
     if (isPlatformBrowser(this.platformId) && this.authService.isLoggedIn) {
       this.friendService.list().subscribe({
@@ -73,7 +71,6 @@ export class NavbarComponent {
         }
       });
     }
->>>>>>> dev:src/app/components/navbar/navbar.component.ts
   }
 
   // Busqueda

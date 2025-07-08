@@ -62,14 +62,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return;
     }
 
-<<<<<<< HEAD:Petlink/src/app/components/profile/profile.component.ts
     // Cachear amigos al cargar el componente
     this.subs.add(
       this.friendService.cacheFriends().subscribe()
     );
-=======
     this.loadingService.show();
->>>>>>> dev:src/app/components/profile/profile.component.ts
 
     this.subs.add(
       this.route.paramMap
@@ -109,13 +106,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .filter(p => !!p.photoURL)
             .map(p => p.photoURL!);
           this.friends = profile.friends ?? [];
-<<<<<<< HEAD:Petlink/src/app/components/profile/profile.component.ts
-          if (!this.isOwnProfile) {
-            this.isFriend = this.friendService.has(profile.uid);
-            //this.friendService.list().subscribe(resp => {
-            //this.isFriend = resp.friends.some(f => f.uid === profile.uid);
-            //});
-=======
           if (!this.isOwnProfile && this.authService.isLoggedIn) {
             this.friendService.list().subscribe({
               next: resp => {
@@ -125,7 +115,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 // ignore unauthorized errors if not logged in
               }
             });
->>>>>>> dev:src/app/components/profile/profile.component.ts
           }
           this.loading = false;
           this.loadingService.hide();
