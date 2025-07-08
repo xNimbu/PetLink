@@ -10,7 +10,7 @@ import { CommentPostService } from '../../../services/commentsPost/comment-post.
 
 import { Profile } from '../../../models/profile/profile.model';
 import { Post } from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
-import { Subscription } from 'rxjs';
+import { filter, first, Subscription, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-posts',
@@ -37,6 +37,7 @@ export class PostsComponent implements OnInit, OnChanges {
   loading = true;
   errorMsg = '';
 
+
   private subscriptions = new Subscription();
 
   /** IDs de los posts que el usuario ha marcado con “like” */
@@ -45,6 +46,8 @@ export class PostsComponent implements OnInit, OnChanges {
   /** Control de visibilidad y contenido del formulario de comentario */
   commentFormVisible: Record<string, boolean> = {};
   newComment: Record<string, string> = {};
+  editMode: Record<string, boolean> = {};    // key = commentId
+  editCommentText: Record<string, string> = {};    // key = commentId
 
   private profileService = inject(ProfileService);
   private postsService = inject(PostsService);
@@ -86,22 +89,74 @@ export class PostsComponent implements OnInit, OnChanges {
   }
 
   private initFeed(): void {
+    // Si es feed de amigos, solo obtenemos el perfil propio una vez
     if (this.friendsFeed) {
       this.isOwnProfile = false;
-      this.loadFriendsPosts();
+
+      // 1) Carga inicial de perfil y posts de amigos
+      this.subscriptions.add(
+        this.authService.ready$.pipe(
+          filter(r => r),
+          first(),
+          switchMap(() => this.profileService.getProfile())
+        ).subscribe({
+          next: profile => {
+            this.user = profile;
+            this.loadFriendsPosts();
+          },
+          error: err => {
+            console.error('Error cargando feed', err);
+            this.errorMsg = 'No se pudo cargar el feed.';
+            this.loading = false;
+          }
+
+        })
+      );
+
+      // 2) Suscribirse a postCreated$ para recargar SOLO cuando YO subo un post
+      this.subscriptions.add(
+        this.postsService.postCreated$
+          .subscribe(() => {
+            console.log('🔄 [PostsComponent] recargando feed de amigos tras crear post propio');
+            this.loadFriendsPosts();
+          })
+      );
+
       return;
     }
 
-    // Re-cargar posts cuando se crea uno nuevo solo si es el propio perfil
+
+    this.isOwnProfile = true;
+    if (this.user) {
+      this.loadPosts(this.user);
+    }
+    
+    // Si es mi propio perfil, recargo posts al crear uno
     if (!this.uid || this.uid === this.authService.uid) {
+      console.log('🟢 [PostsComponent] suscribiendo a postCreated$ en propio perfil');
       this.subscriptions.add(
-        this.postsService.postCreated$.subscribe(() => this.loadPosts(this.user))
+        this.postsService.postCreated$
+          .subscribe(() => {
+            console.log('🔄 [PostsComponent] recargando posts tras crear uno propio');
+            this.loadPosts(this.user);
+          })
       );
     }
 
-    if (this.uid && this.uid !== this.authService.uid) {
-      this.isOwnProfile = false;
-      this.profileService.getPublicProfile(this.uid).subscribe({
+    // Luego cargo inicial de perfil (público o propio) y sus posts
+    this.subscriptions.add(
+      this.authService.ready$.pipe(
+        filter(ready => ready),
+        first(),
+        switchMap(() => {
+          if (this.uid && this.uid !== this.authService.uid) {
+            this.isOwnProfile = false;
+            return this.profileService.getPublicProfile(this.uid);
+          }
+          this.isOwnProfile = true;
+          return this.profileService.getProfile();
+        })
+      ).subscribe({
         next: profile => {
           this.user = profile;
           this.loadPosts(profile);
@@ -111,15 +166,11 @@ export class PostsComponent implements OnInit, OnChanges {
           this.errorMsg = 'No se pudo cargar tu perfil.';
           this.loading = false;
         }
-      });
-      return;
-    }
-
-    this.isOwnProfile = true;
-    if (this.user) {
-      this.loadPosts(this.user);
-    }
+      })
+    );
   }
+
+
 
   /** Trae todos los posts para el perfil actual */
   private loadPosts(profile: Profile): void {
@@ -230,7 +281,8 @@ export class PostsComponent implements OnInit, OnChanges {
           userId: this.viewerUid,
           username: this.viewerUsername,
           message,
-          timestamp: now
+          timestamp: now,
+          photoURL: this.user?.photoURL || ''
         };
 
         // Lo añadimos al post correspondiente
@@ -244,6 +296,53 @@ export class PostsComponent implements OnInit, OnChanges {
         this.commentFormVisible[postId] = false;
       },
       error: err => console.error('Error al enviar comentario', err)
+    });
+  }
+
+  /** Entra en modo edición para un comentario */
+  public enableEdit(commentId: string, currentText: string): void {
+    this.editMode[commentId] = true;
+    this.editCommentText[commentId] = currentText;
+  }
+
+  /** Cancela la edición */
+  public cancelEdit(commentId: string): void {
+    this.editMode[commentId] = false;
+    delete this.editCommentText[commentId];
+  }
+
+  /** Guarda la edición enviándola al backend */
+  public saveEdit(postId: string, commentId: string): void {
+    const newMsg = (this.editCommentText[commentId] || '').trim();
+    if (!newMsg) return;
+
+    this.commentService.updateComment(postId, commentId, newMsg).subscribe({
+      next: () => {
+        // Actualiza en el frontend
+        const post = this.posts.find(p => p.id === postId);
+        if (post && post.comments) {
+          post.comments = post.comments.map(c =>
+            c.id === commentId ? { ...c, message: newMsg } : c
+          );
+        }
+        this.cancelEdit(commentId);
+      },
+      error: err => console.error('Error actualizando comentario', err)
+    });
+  }
+
+  /** Elimina un comentario */
+  public deleteComment(postId: string, commentId: string): void {
+    if (!confirm('¿Eliminar este comentario?')) return;
+
+    this.commentService.deleteComment(postId, commentId).subscribe({
+      next: () => {
+        const post = this.posts.find(p => p.id === postId);
+        if (post && post.comments) {
+          post.comments = post.comments.filter(c => c.id !== commentId);
+        }
+      },
+      error: err => console.error('Error eliminando comentario', err)
     });
   }
 }

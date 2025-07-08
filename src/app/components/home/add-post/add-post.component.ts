@@ -43,10 +43,10 @@ export class AddPostComponent {
 
     this.petsService.listPets()
       .pipe(
-      catchError(err => {
-        console.error('Error cargando mascotas', err);
-        return of<Pet[]>([]);
-      })
+        catchError(err => {
+          console.error('Error cargando mascotas', err);
+          return of<Pet[]>([]);
+        })
       )
       .subscribe(pets => {
         if (Array.isArray(pets)) {
@@ -75,10 +75,10 @@ export class AddPostComponent {
         }
         this.user = profile;
         this.profileFields = [
-          { label: 'Nombre completo',      value: profile.fullName },
-          { label: 'Correo electrónico',   value: profile.email },
-          { label: 'Teléfono',             value: profile.phone? profile.phone : 'No disponible' },
-          { label: 'Tipo de usuario',      value: profile.role }
+          { label: 'Nombre completo', value: profile.fullName },
+          { label: 'Correo electrónico', value: profile.email },
+          { label: 'Teléfono', value: profile.phone ? profile.phone : 'No disponible' },
+          { label: 'Tipo de usuario', value: profile.role }
         ];
       });
   }
@@ -117,10 +117,10 @@ export class AddPostComponent {
     }
 
     this.postsService.createPostWithImage(formData).subscribe({
-      next: () => {
-        this.postCreated.emit();
-        this.cancel();
-      },
+          next: () => {
+      this.postCreated.emit();
+      this.cancel();
+    },
       error: err => console.error('Error creando post', err)
     });
   }
