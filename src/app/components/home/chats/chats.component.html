@@ -1,0 +1,50 @@
+<!-- Sidebar de chats -->
+<div *ngIf="friends.length" class="chat-sidebar bg-white shadow-sm p-3">
+  <h5 class="chat-sidebar__title mb-3">Chats</h5>
+  <ul class="list-group list-group-flush">
+    <li *ngFor="let f of friends" class="list-group-item d-flex align-items-center chat-sidebar__item"
+      (click)="openChat(f)" [class.active]="selectedChat?.uid === f.uid">
+      <img [src]="f.avatar || '/assets/images/default-avatar.png'" alt="{{ f.username }}"
+        class="rounded-circle me-2 chat-sidebar__avatar" width="36" height="36" />
+      <span class="chat-sidebar__username">{{ f.username }}</span>
+    </li>
+  </ul>
+</div>
+<div *ngIf="!friends.length" class="chat-sidebar bg-white shadow-sm p-3 text-center text-muted">Aún no tienes amigos.
+  Busca usuarios para conectar.</div>
+
+<!-- Ventana de chat -->
+<div *ngIf="selectedChat && currentRoomId" class="chat-window card shadow">
+  <!-- Header -->
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <img [src]="selectedChat.avatar || '/assets/images/default-avatar.png'" alt="{{ selectedChat.username }}"
+        class="rounded-circle me-2" width="32" height="32" />
+      <span class="fw-semibold">Chat con {{ selectedChat.username }}</span>
+    </div>
+    <button type="button" class="btn-close" (click)="closeChat()"></button>
+  </div>
+
+  <!-- Cuerpo -->
+  <div #chatBody class="chat-body">
+    <ng-container *ngFor="let msg of chatConversations[currentRoomId]">
+      <div class="message-wrapper" [ngClass]="{
+          'from-me':   msg.sender === 'me',
+          'from-them': msg.sender === 'them'
+        }">
+        <div class="message-bubble">
+          {{ msg.text }}
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Footer -->
+  <form class="card-footer p-2" (ngSubmit)="sendMessage()">
+    <div class="input-group input-group-sm">
+      <input name="message" type="text" class="form-control" [(ngModel)]="newMessageText" placeholder="Escribe…"
+        autocomplete="off" />
+      <button class="btn btn-primary" type="submit">Enviar</button>
+    </div>
+  </form>
+</div>

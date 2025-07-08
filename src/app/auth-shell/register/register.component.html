@@ -1,0 +1,119 @@
+<div class="register-page position-relative vh-100">
+  <!-- overlay -->
+  <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index:1;"></div>
+
+  <!-- contenido -->
+  <div class="container h-100 d-flex justify-content-center align-items-center position-relative" style="z-index:2;">
+    <div class="row gx-0 w-100">
+      <div class="col-12 col-md-6 d-flex justify-content-center align-items-center mx-auto">
+        <div class="card bg-white bg-opacity-75 border-0 shadow-lg rounded-3 p-4 text-center w-100" style="max-width:400px;">
+          <ng-container *ngIf="step === 1; else stepTwo">
+          <h2 class="mb-4">¿No tienes cuenta?<br/>Regístrate</h2>
+
+          <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+            <div class="mb-3 text-start">
+              <input formControlName="nombre"
+                     type="text"
+                     placeholder="Nombre"
+                     class="form-control rounded-pill"
+                     [class.is-invalid]="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched" />
+              <div *ngIf="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched"
+                   class="invalid-feedback">
+                El nombre es obligatorio.
+              </div>
+            </div>
+
+            <div class="mb-3 text-start">
+              <input formControlName="email"
+                     type="email"
+                     placeholder="Correo"
+                     class="form-control rounded-pill"
+                     [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" />
+              <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+                   class="invalid-feedback">
+                Ingresa un correo válido.
+              </div>
+            </div>
+
+            <div class="mb-3 position-relative text-start">
+              <input formControlName="password"
+                     [type]="showPassword ? 'text' : 'password'"
+                     placeholder="Contraseña"
+                     class="form-control rounded-pill"
+                     [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" />
+              <button type="button"
+                      class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                      (click)="togglePasswordVisibility('password')"
+                      aria-label="Mostrar contraseña">
+                <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
+              <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                   class="invalid-feedback">
+                La contraseña es obligatoria.
+              </div>
+            </div>
+
+            <div class="mb-3 position-relative text-start">
+              <input formControlName="password2"
+                     [type]="showPassword2 ? 'text' : 'password'"
+                     placeholder="Repetir contraseña"
+                     class="form-control rounded-pill"
+                     [class.is-invalid]="registerForm.get('password2')?.invalid && registerForm.get('password2')?.touched" />
+              <button type="button"
+                      class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                      (click)="togglePasswordVisibility('password2')"
+                      aria-label="Mostrar contraseña">
+                <i class="bi" [ngClass]="showPassword2 ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
+              <div *ngIf="registerForm.get('password2')?.invalid && registerForm.get('password2')?.touched"
+                   class="invalid-feedback">
+                Debes repetir la contraseña.
+              </div>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-success rounded-pill w-100"
+                    [disabled]="loading">
+              {{ loading ? 'Registrando...' : 'Registrar' }}
+            </button>
+          </form>
+
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <button class="btn btn-outline-light rounded-pill px-4"
+                    (click)="onLogin()">
+              Iniciar sesión
+            </button>
+          </div>
+          </ng-container>
+          <ng-template #stepTwo>
+            <h2 class="mb-4">Completa tu perfil</h2>
+            <form [formGroup]="profileForm" (ngSubmit)="completeProfile()">
+              <div class="mb-3 text-start">
+                <input formControlName="username"
+                       type="text"
+                       placeholder="Nombre de usuario"
+                       class="form-control rounded-pill"
+                       [class.is-invalid]="profileForm.get('username')?.invalid && profileForm.get('username')?.touched" />
+                <div *ngIf="profileForm.get('username')?.invalid && profileForm.get('username')?.touched"
+                     class="invalid-feedback">
+                  El usuario es obligatorio.
+                </div>
+              </div>
+              <div class="mb-3 text-start">
+                <input formControlName="phone"
+                       type="text"
+                       placeholder="Teléfono"
+                       class="form-control rounded-pill" />
+              </div>
+              <button type="submit"
+                      class="btn btn-success rounded-pill w-100"
+                      [disabled]="loading">
+                {{ loading ? 'Guardando...' : 'Completar' }}
+              </button>
+            </form>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
