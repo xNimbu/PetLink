@@ -11,7 +11,7 @@ import { CommentPostService } from '../../../services/commentsPost/comment-post.
 import { Profile } from '../../../models/profile/profile.model';
 import { Post } from '../../../models';  // asegúrate de que aquí Post incluya pet_id, comments, etc.
 import { filter, first, Subscription, switchMap } from 'rxjs';
-import { LoadingService } from '../../services/loading/loading.service';
+import { LoadingService } from '../../../services/loading/loading.service';
 
 @Component({
   selector: 'app-posts',
