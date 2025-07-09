@@ -51,7 +51,9 @@ export class NotificationsService {
   private guessLink(n: Notification): string | undefined {
     const msg = n.message.toLowerCase();
     if (msg.includes('agreg') && msg.includes('amig')) {
-      return `/profile/${n.username}`;
+      // intenta usar el username proporcionado o inferirlo del mensaje
+      const username = n.username || n.message.split(' ')[0];
+      return username ? `/profile/${username}` : undefined;
     }
     return n.link;
   }
