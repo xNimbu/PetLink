@@ -34,9 +34,26 @@ export class NotificationsService {
     this.http
       .get<{ notifications: Notification[] }>(`${this.base}/`, this.auth.getAuthHeaders())
       .subscribe({
-        next: res => this._notifications.set(res.notifications),
+        next: res => {
+          const withLinks = res.notifications.map(n => ({
+            ...n,
+            link: n.link ?? this.guessLink(n)
+          }));
+          this._notifications.set(withLinks);
+        },
         error: err => console.error('Error fetching notifications', err)
       });
+  }
+
+  /**
+   * Genera un enlace de navegación basado en el mensaje de la notificación
+   */
+  private guessLink(n: Notification): string | undefined {
+    const msg = n.message.toLowerCase();
+    if (msg.includes('agreg') && msg.includes('amig')) {
+      return `/profile/${n.username}`;
+    }
+    return n.link;
   }
 
   /** Marca una notificación como leída */
