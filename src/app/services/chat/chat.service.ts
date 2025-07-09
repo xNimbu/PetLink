@@ -36,7 +36,7 @@ export class ChatService implements OnDestroy {
    * Abre la conexión WebSocket al backend, con token en query string
    */
   connect(token: string, room: string) {
-    const url = `${environment.wsUrl}${room}/?token=${encodeURIComponent(token)}`;
+    const url = `${environment.wsUrl}${room}/?token=${encodeURIComponent(token)}/`;
     console.log('[ChatService] Conectando a', url);
 
     // Cierra cualquier conexión previa
