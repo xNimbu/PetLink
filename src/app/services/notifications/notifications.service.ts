@@ -9,6 +9,8 @@ import { AuthService } from '../auth/auth.service';
 export class NotificationsService {
   private readonly _notifications = signal<Notification[]>([]);
   private base = `${environment.backendUrl}/profile/notifications`;
+  private STORAGE_KEY = 'notifications_read';
+  private readIds = new Set<string>();
 
   /** Lista de notificaciones (solo lectura) */
   readonly notifications = this._notifications.asReadonly();
@@ -23,6 +25,16 @@ export class NotificationsService {
 
   constructor() {
     if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        try {
+          const ids: string[] = JSON.parse(stored);
+          ids.forEach(id => this.readIds.add(id));
+        } catch (_) {
+          console.warn('Invalid notifications read data in storage');
+        }
+      }
+
       this.auth.ready$
         .pipe(filter(() => this.auth.isLoggedIn))
         .subscribe(() => this.fetch());
@@ -37,7 +49,8 @@ export class NotificationsService {
         next: res => {
           const withLinks = res.notifications.map(n => ({
             ...n,
-            link: n.link ?? this.guessLink(n)
+            link: n.link ?? this.guessLink(n),
+            read: n.read || this.readIds.has(n.id)
           }));
           this._notifications.set(withLinks);
         },
@@ -70,6 +83,11 @@ export class NotificationsService {
     this._notifications.update(list =>
       list.map(item => (item.id === target.id ? { ...item, read: true } : item))
     );
+
+    this.readIds.add(target.id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify([...this.readIds]));
+    }
 
     // Envía el cambio al backend sin bloquear la interfaz
     this.http
