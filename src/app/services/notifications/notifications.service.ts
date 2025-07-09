@@ -65,16 +65,16 @@ export class NotificationsService {
   /** Marca una notificación como leída */
   markAsRead(target: Notification): void {
     if (!target.id) return;
+
+    // Actualiza de inmediato el estado local
+    this._notifications.update(list =>
+      list.map(item => (item.id === target.id ? { ...item, read: true } : item))
+    );
+
+    // Envía el cambio al backend sin bloquear la interfaz
     this.http
       .patch(`${this.base}/${target.id}/`, {}, this.auth.getAuthHeaders())
       .subscribe({
-        next: () => {
-          this._notifications.update(list =>
-            list.map(item =>
-              item.id === target.id ? { ...item, read: true } : item
-            )
-          );
-        },
         error: err => console.error('Error marking notification as read', err)
       });
   }
