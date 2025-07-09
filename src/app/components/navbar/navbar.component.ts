@@ -57,7 +57,9 @@ export class NavbarComponent {
     private http: HttpClient,
     private friendService: FriendService
   ) {
-    this.friendService.cacheFriends().subscribe(); // Carga amigos al iniciar
+    if (isPlatformBrowser(this.platformId) && this.authService.isLoggedIn) {
+      this.friendService.cacheFriends().subscribe(); // Carga amigos al iniciar
+    }
     /* ① cargar amigos una sola vez */
     //this.friendService.list().subscribe(resp => {
     //  resp.friends.forEach(f => this.friendService.add(f.uid));
