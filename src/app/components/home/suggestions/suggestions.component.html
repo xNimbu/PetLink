@@ -1,13 +1,18 @@
-<div class="card shadow-sm mb-3" *ngIf="suggestions.length">
+<div class="card shadow-sm mb-3">
   <div class="card-header fw-semibold">Sugerencias de perfiles</div>
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item d-flex align-items-center justify-content-between" *ngFor="let u of suggestions">
-      <div class="d-flex align-items-center gap-2">
-        <img [src]="u.avatar || '/assets/images/default-avatar.png'" class="rounded-circle" width="40" height="40" />
-        <span>{{ u.username }}</span>
-      </div>
-      <button class="btn btn-sm btn-outline-success" (click)="addFriend(u)" *ngIf="!u.requestSent">Agregar</button>
-      <span class="text-success small" *ngIf="u.requestSent">Enviado</span>
-    </li>
-  </ul>
+  <ng-container *ngIf="suggestions.length; else noSuggestions">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item d-flex align-items-center justify-content-between" *ngFor="let u of suggestions">
+        <div class="d-flex align-items-center gap-2">
+          <img [src]="u.avatar || '/assets/images/default-avatar.png'" class="rounded-circle" width="40" height="40" />
+          <span>{{ u.username }}</span>
+        </div>
+        <button class="btn btn-sm btn-outline-success" (click)="addFriend(u)" *ngIf="!u.requestSent">Agregar</button>
+        <span class="text-success small" *ngIf="u.requestSent">Enviado</span>
+      </li>
+    </ul>
+  </ng-container>
+  <ng-template #noSuggestions>
+    <div class="p-3 text-muted">No hay sugerencias disponibles por ahora</div>
+  </ng-template>
 </div>

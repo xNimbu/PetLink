@@ -34,7 +34,7 @@ export class SuggestionsComponent implements OnInit {
         this.http.get<UserSuggestion[]>(`${environment.backendUrl}/profile_list/`)
           .subscribe(list => {
             this.suggestions = list
-              .filter(u => !friendIds.has(u.uid) && u.uid !== this.authService.uid)
+              .filter(u => u.username && !friendIds.has(u.uid) && u.uid !== this.authService.uid)
               .slice(0, 5)
               .map(u => ({ ...u, requestSent: false }));
           });
@@ -44,7 +44,7 @@ export class SuggestionsComponent implements OnInit {
         this.http.get<UserSuggestion[]>(`${environment.backendUrl}/profile_list/`)
           .subscribe(list => {
             this.suggestions = list
-              .filter(u => u.uid !== this.authService.uid)
+              .filter(u => u.username && u.uid !== this.authService.uid)
               .slice(0, 5)
               .map(u => ({ ...u, requestSent: false }));
           });
