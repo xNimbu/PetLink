@@ -54,4 +54,8 @@ $gap: 12px;
     .list-group-item:not(.unread) {
       background-color: #f8f9fa;
     }
-  }}
+
+    /* Botón marcar leído */
+    .list-group-item button {
+      color: #198754;
+    }  }}
