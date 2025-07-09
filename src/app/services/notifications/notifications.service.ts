@@ -55,6 +55,10 @@ export class NotificationsService {
       const username = n.username || n.message.split(' ')[0];
       return username ? `/profile/${username}` : undefined;
     }
+    if (msg.includes('coment')) {
+      // para comentarios asumimos que el backend provee el enlace del post
+      return n.link;
+    }
     return n.link;
   }
 

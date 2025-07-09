@@ -68,6 +68,7 @@
               [routerLink]="n.link || null"
               class="list-group-item d-flex align-items-start"
               [ngClass]="{ unread: !n.read, read: n.read }"
+              (mouseenter)="markAsRead(n)"
               (click)="markAsRead(n, $event)"
             >
               <img
