@@ -166,9 +166,9 @@ export class NavbarComponent {
   /**
    * Marca una notificación como leída y actualiza el contador
    */
-  markAsRead(notification: Notification, event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
+  markAsRead(notification: Notification, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
     if (!notification.read) {
       this.notificationsService.markAsRead(notification);
     }
@@ -180,5 +180,4 @@ export class NavbarComponent {
     if (!this.host.nativeElement.contains(target)) {
       this.showNotifications = false;
     }
-  }
-}
+  }}

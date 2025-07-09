@@ -59,28 +59,40 @@
 
         <!-- floater absoluto -->
         <div *ngIf="showNotifications" class="card shadow p-0 d-flex flex-column notification-menu"
-          style="width: 300px; max-height: 240px">
+          style="width: 360px; max-height: 240px">
           <div class="card-header flex-shrink-0 fw-bold">Notificaciones</div>
 
           <div class="list-group list-group-flush flex-grow-1 overflow-auto">
-            <a
+            <div
               *ngFor="let n of notifications()"
-              [routerLink]="n.link || null"
-              class="list-group-item d-flex align-items-start"
+              class="list-group-item d-flex align-items-start justify-content-between"
               [ngClass]="{ unread: !n.read, read: n.read }"
-              (click)="markAsRead(n, $event)"
             >
-              <img
-                [src]="n.avatar"
-                class="rounded-circle me-2"
-                width="30"
-                height="30"
-              />
-              <div class="small">
-                <strong>{{ n.username }}</strong>
-                <div class="text-truncate">{{ n.message }}</div>
-              </div>
-            </a>
+              <a
+                [routerLink]="n.link || null"
+                class="d-flex align-items-start flex-grow-1 text-decoration-none text-body"
+                (click)="markAsRead(n, $event)"
+              >
+                <img
+                  [src]="n.avatar"
+                  class="rounded-circle me-2"
+                  width="30"
+                  height="30"
+                />
+                <div class="small">
+                  <strong>{{ n.username }}</strong>
+                  <div class="text-truncate">{{ n.message }}</div>
+                </div>
+              </a>
+              <button
+                type="button"
+                class="btn btn-link btn-sm text-decoration-none"
+                (click)="markAsRead(n, $event)"
+                [disabled]="n.read"
+              >
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </div>
             <div
               *ngIf="!notifications().length"
               class="list-group-item text-center text-muted py-3"
@@ -89,11 +101,6 @@
             </div>
           </div>
 
-          <div class="card-footer flex-shrink-0 text-center py-2">
-            <a class="list-group-item list-group-item-action m-0" routerLink="/notificaciones">
-              Ver todas
-            </a>
-          </div>
         </div>
       </li>
       <!-- Perfil -->
@@ -108,6 +115,4 @@
           <i class="fas fa-cog fa-lg"></i>
         </a>
       </li>
-    </ul>
-  </div>
-</nav>
+    </ul>  </div></nav>
