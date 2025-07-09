@@ -1,10 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
-import { first, switchMap, map } from 'rxjs/operators';
+import { first, switchMap } from 'rxjs/operators';
 import { PostsComponent } from '../../home/posts/posts.component';
 import { ProfileService } from '../../services/profile/profile.service';
+import { Post } from '../../models';
+import { Profile } from '../../models/profile/profile.model';
 
 @Component({
   selector: 'app-profile-posts',
@@ -15,6 +16,8 @@ import { ProfileService } from '../../services/profile/profile.service';
 })
 export class ProfilePostsComponent implements OnInit {
   uid: string | null = null;
+  posts: Post[] = [];
+  owner: Profile | null = null;
 
   private route = inject(ActivatedRoute);
   private profileService = inject(ProfileService);
@@ -24,19 +27,21 @@ export class ProfilePostsComponent implements OnInit {
       .pipe(
         first(),
         switchMap(params => {
-          const uid = params.get('uid');
           const username = params.get('username');
-          if (uid) {
-            return of(uid);
-          }
+          const uidParam = params.get('uid');
           if (username) {
-            return this.profileService.getProfileByUsername(username).pipe(
-              map(profile => profile.uid)
-            );
+            return this.profileService.getProfileByUsername(username);
           }
-          return of(null);
+          if (uidParam) {
+            return this.profileService.getPublicProfile(uidParam);
+          }
+          return this.profileService.getProfile();
         })
       )
-      .subscribe(res => (this.uid = res));
+      .subscribe(profile => {
+        this.uid = profile.uid;
+        this.owner = profile;
+        this.posts = profile.posts ?? [];
+      });
   }
 }
