@@ -10,6 +10,7 @@ import { Notification } from '../../models';
 import { NotificationsService } from '../../services/notifications/notifications.service';
 import { ProfileService } from '../../services/profile/profile.service';
 import { AuthService } from '../../services/auth/auth.service';
+import { ToastrService } from 'ngx-toastr';
 
 // Tipo para resultados de búsqueda, con flag opcional para indicar si es amigo
 interface UserResult {
@@ -55,7 +56,9 @@ export class NavbarComponent {
     private router: Router,
     private host: ElementRef,
     private http: HttpClient,
-    private friendService: FriendService
+    private friendService: FriendService,
+    private toastr: ToastrService
+    
   ) {
     if (isPlatformBrowser(this.platformId) && this.authService.isLoggedIn) {
       this.friendService.cacheFriends().subscribe(); // Carga amigos al iniciar
@@ -111,8 +114,13 @@ export class NavbarComponent {
     if (u.requestSent) return; // Si ya se ha enviado, no hacer nada
 
     this.friendService.add(u.uid).subscribe({
-      next: () => u.requestSent = true, // Marcar como solicitud enviada
-      error: () => alert('Error al enviar solicitud de amistad')
+      next: () => {
+        u.requestSent = true; // Marcar como solicitud enviada
+        this.toastr.success('Solicitud de amistad enviada', 'Éxito');
+      },
+      error: () => {
+        this.toastr.error('Error al enviar solicitud de amistad', 'Error');
+      }
     });
   }
 
@@ -174,10 +182,9 @@ export class NavbarComponent {
     }
   }
 
-  // TODO: implementarlo correctamente vvvvv
   @HostListener('document:click', ['$event.target'])
   onClickOutside(target: HTMLElement): void {
     if (!this.host.nativeElement.contains(target)) {
-      this.showNotifications = false;
+      this.showDropdown = false; // Cerrar dropdown si se hace click fuera
     }
   }}

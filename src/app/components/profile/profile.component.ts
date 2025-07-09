@@ -22,6 +22,7 @@ import { Profile } from '../../models/profile/profile.model';
 import { Pet } from '../../models/pet/pet.model';
 import { Friend } from '../../models/friend/friend.model';
 import { LoadingService } from '../../services/loading/loading.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-profile',
@@ -54,6 +55,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private loadingService = inject(LoadingService);
   private subs = new Subscription();
+  private toastr = inject(ToastrService);
 
   ngOnInit(): void {
     // No ejecutar en SSR
@@ -138,11 +140,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
       filter(r => r), first()
     ).subscribe(() => {
       const targetUid = this.user.uid ?? (this.user as any).id;
-      if (!targetUid) { alert('No se encontró UID del perfil'); return; }
+      if (!targetUid) { 
+        this.toastr.error('No se pudo obtener el ID del usuario.', 'Error');
+        return;
+      }
 
       this.friendService.add(targetUid).subscribe({
-        next: () => { this.isFriend = true; },
-        error: () => alert('No se pudo enviar la solicitud de amistad.')
+        next: () => { 
+          this.isFriend = true; 
+          this.toastr.success('Solicitud de amistad enviada', 'Éxito');
+        },
+        error: () => {
+          this.toastr.error('No se pudo enviar la solicitud de amistad.', 'Error');
+        }
       });
     });
   }
@@ -152,8 +162,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (!confirm('¿Estás seguro de que quieres eliminar a este amigo?')) return;
 
     this.friendService.remove(this.user.uid).subscribe({
-      next: () => this.isFriend = false,
-      error: () => alert('No se pudo eliminar al amigo.')
+      next: () => {
+        this.isFriend = false;
+        this.toastr.success('Amigo eliminado correctamente', 'Éxito');
+      },
+      error: () => {
+        this.toastr.error('No se pudo eliminar al amigo.', 'Error');
+      }
     });
   }
 
