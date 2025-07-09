@@ -19,11 +19,12 @@
 
         <li *ngFor="let u of results" class="list-group-item d-flex align-items-center justify-content-between gap-2">
 
-          <!-- Avatar + username (clic navega) -->
-          <div class="d-flex align-items-center gap-2" (mousedown)="goToProfile(u)">
-            <img [src]="u.avatar || 'assets/images/nophoto_avatar.jpg'" class="rounded-circle" width="32" height="32" />
-            <span>{{ u.username }}</span>
-          </div>
+          <!-- Redirección al perfil -->
+           <a [routerLink]="['/profile', u.username]" class="d-flex align-items-center gap-2 flex-grow-1 text-decoration-none text-dark">
+
+             <img [src]="u.avatar || 'assets/images/nophoto_avatar.jpg'" class="rounded-circle" width="32" height="32" />
+             <span>{{ u.username }}</span>
+           </a>
 
           <!-- Ya son amigos -->
           <span *ngIf="u.isFriend" class="text-success small">
