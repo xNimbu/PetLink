@@ -7,7 +7,7 @@
 
     <!-- Foto con pre-visualización -->
     <div class="text-center mb-3">
-      <img [src]="previewUrl || form.value.photoURL || 'assets/images/default-pet.png'" class="rounded mb-2"
+      <img [src]="previewUrl || form.value.photoURL || 'assets/images/defaul-pet.jpg'" class="rounded mb-2"
         style="width:120px;height:120px;object-fit:cover;">
       <div>
         <input type="file" accept="image/*" #file hidden (change)="onFileSelected($event)">

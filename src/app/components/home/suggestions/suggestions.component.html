@@ -3,7 +3,7 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex align-items-center justify-content-between" *ngFor="let u of suggestions">
       <div class="d-flex align-items-center gap-2">
-        <img [src]="u.avatar || '/assets/images/default-avatar.png'" class="rounded-circle" width="40" height="40" />
+        <img [src]="u.avatar || 'assets/images/nophoto_avatar.jpg'" class="rounded-circle" width="40" height="40" />
         <span>{{ u.username }}</span>
       </div>
       <button class="btn btn-sm btn-outline-success" (click)="addFriend(u)" *ngIf="!u.requestSent">Agregar</button>

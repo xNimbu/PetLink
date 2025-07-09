@@ -4,7 +4,7 @@
   <ul class="list-group list-group-flush">
     <li *ngFor="let f of friends" class="list-group-item d-flex align-items-center chat-sidebar__item"
       (click)="openChat(f)" [class.active]="selectedChat?.uid === f.uid">
-      <img [src]="f.avatar || '/assets/images/default-avatar.png'" alt="{{ f.username }}"
+      <img [src]="f.avatar || 'assets/images/nophoto_avatar.jpg'" alt="{{ f.username }}"
         class="rounded-circle me-2 chat-sidebar__avatar" width="36" height="36" />
       <span class="chat-sidebar__username">{{ f.username }}</span>
     </li>
@@ -18,7 +18,7 @@
   <!-- Header -->
   <div class="card-header d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center">
-      <img [src]="selectedChat.avatar || '/assets/images/default-avatar.png'" alt="{{ selectedChat.username }}"
+      <img [src]="selectedChat.avatar || 'assets/images/nophoto_avatar.jpg'" alt="{{ selectedChat.username }}"
         class="rounded-circle me-2" width="32" height="32" />
       <span class="fw-semibold">Chat con {{ selectedChat.username }}</span>
     </div>
