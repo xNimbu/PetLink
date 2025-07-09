@@ -16,7 +16,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { ProfileService } from '../../services/profile/profile.service';
 import { FriendService } from '../../services/friends/friend.service';
 import { DetailProfileComponent } from "./detail-profile/detail-profile.component";
-import { PostsComponent } from "../home/posts/posts.component";
+import { ProfilePostsComponent } from "./profile-posts/profile-posts.component";
 import { AddPostComponent } from '../home/add-post/add-post.component';
 import { Profile } from '../../models/profile/profile.model';
 import { Pet } from '../../models/pet/pet.model';
@@ -31,7 +31,7 @@ import { ToastrService } from 'ngx-toastr';
     CommonModule,
     NgbModule,
     DetailProfileComponent,
-    PostsComponent,
+    ProfilePostsComponent,
     AddPostComponent
   ],
   templateUrl: './profile.component.html',
