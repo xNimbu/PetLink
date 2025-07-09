@@ -12,6 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { ProfileService } from '../../services/profile/profile.service';
 import { firstValueFrom } from 'rxjs';
+import { LoadingService } from '../../services/loading/loading.service';
 
 @Component({
   selector: 'app-register',
@@ -36,7 +37,8 @@ export class RegisterComponent {
     private toastr: ToastrService,
     private router: Router,
     private route: ActivatedRoute,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
@@ -69,6 +71,7 @@ export class RegisterComponent {
       return;
     }
     this.loading = true;
+    this.loadingService.show();
     try {
       await this.authService.register(email, password, nombre);
       this.toastr.success('Usuario creado correctamente', '¡Registro OK!');
@@ -83,6 +86,7 @@ export class RegisterComponent {
       this.toastr.error(msg, 'Falló Registro');
     } finally {
       this.loading = false;
+      this.loadingService.hide();
     }
   }
 
@@ -92,6 +96,7 @@ export class RegisterComponent {
       return;
     }
     this.loading = true;
+    this.loadingService.show();
     const formData = new FormData();
     formData.append('fullName', this.registerForm.value.nombre);
     formData.append('email', this.email);
@@ -106,6 +111,7 @@ export class RegisterComponent {
       this.toastr.error(msg, 'Falló');
     } finally {
       this.loading = false;
+      this.loadingService.hide();
     }
   }
 

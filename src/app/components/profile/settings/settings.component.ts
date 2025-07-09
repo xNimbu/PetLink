@@ -11,6 +11,7 @@ import { ProfileService } from '../../../services/profile/profile.service';
 import { PetsService } from '../../../services/pets/pets.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { Pet, Profile } from '../../../models';
+import { LoadingService } from '../../../services/loading/loading.service';
 
 @Component({
   selector: 'app-settings',
@@ -26,10 +27,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   loading = true;
 
   private profileService = inject(ProfileService);
-  private petsService    = inject(PetsService);
-  private authService    = inject(AuthService);
-  private modalService   = inject(NgbModal);
-  private platformId     = inject(PLATFORM_ID);
+  private petsService = inject(PetsService);
+  private authService = inject(AuthService);
+  private modalService = inject(NgbModal);
+  private platformId = inject(PLATFORM_ID);
+  private loadingService = inject(LoadingService);
   private subs = new Subscription();
 
   ngOnInit(): void {
@@ -37,6 +39,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.loading = false;
       return;
     }
+
+    this.loadingService.show();
 
     this.subs = this.authService.ready$
       .pipe(
@@ -47,11 +51,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
           console.error('Error al cargar perfil:', err);
           this.errorMsg = 'No se pudo cargar tu perfil.';
           this.loading = false;
+          this.loadingService.hide();
           return of<Profile | null>(null);
         })
       )
       .subscribe(profile => {
         this.loading = false;
+        this.loadingService.hide();
         if (!profile) return;
         this.user = profile;
         this.pets = profile.pets ?? [];
@@ -69,48 +75,45 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .then((updated: Profile) => {
         if (updated) this.user = updated;
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
-// src/app/components/profile/settings.component.ts
-// src/app/components/profile/settings.component.ts
-
-openAddPetModal(): void {
-  const modalRef = this.modalService.open(AddEditPetModalComponent);
-  modalRef.componentInstance.mode = 'add';
-  modalRef.result
-    .then((formData: FormData) => {
-      this.petsService.addPet(formData).subscribe({
-        next: (nuevoPet: Pet) => {
-          // Insertamos directamente el Pet que devuelve el backend
-          this.pets = [...this.pets, nuevoPet];
-        },
-        error: err => console.error('Error agregando mascota:', err)
-      });
-    })
-    .catch(() => {});
-}
+  openAddPetModal(): void {
+    const modalRef = this.modalService.open(AddEditPetModalComponent);
+    modalRef.componentInstance.mode = 'add';
+    modalRef.result
+      .then((formData: FormData) => {
+        this.petsService.addPet(formData).subscribe({
+          next: (nuevoPet: Pet) => {
+            // Insertamos directamente el Pet que devuelve el backend
+            this.pets = [...this.pets, nuevoPet];
+          },
+          error: err => console.error('Error agregando mascota:', err)
+        });
+      })
+      .catch(() => { });
+  }
 
 
-openEditPetModal(pet: Pet): void {
-  const modalRef = this.modalService.open(AddEditPetModalComponent);
-  modalRef.componentInstance.mode = 'edit';
-  modalRef.componentInstance.pet = pet;
-  modalRef.result
-    .then((formData: FormData) => {
-      this.petsService.updatePet(pet.id, formData).subscribe({
-        next: (petActualizado: Pet) => {
-          // Reemplazamos solo el elemento editado en el array
-          this.pets = this.pets.map(p =>
-            p.id === pet.id ? petActualizado : p
-          );
-        },
-        error: err => console.error('Error actualizando mascota:', err)
-      });
-    })
-    .catch(() => {});
-}
-  
+  openEditPetModal(pet: Pet): void {
+    const modalRef = this.modalService.open(AddEditPetModalComponent);
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.pet = pet;
+    modalRef.result
+      .then((formData: FormData) => {
+        this.petsService.updatePet(pet.id, formData).subscribe({
+          next: (petActualizado: Pet) => {
+            // Reemplazamos solo el elemento editado en el array
+            this.pets = this.pets.map(p =>
+              p.id === pet.id ? petActualizado : p
+            );
+          },
+          error: err => console.error('Error actualizando mascota:', err)
+        });
+      })
+      .catch(() => { });
+  }
+
 
   deletePet(id: string): void {
     if (!confirm('¿Eliminar esta mascota?')) return;

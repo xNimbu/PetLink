@@ -1,4 +1,4 @@
-// src/app/components/profile/profilefeed/profilefeed.component.ts
+/// src/app/components/profile/profilefeed/profilefeed.component.ts
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -21,6 +21,8 @@ import { AddPostComponent } from '../home/add-post/add-post.component';
 import { Profile } from '../../models/profile/profile.model';
 import { Pet } from '../../models/pet/pet.model';
 import { Friend } from '../../models/friend/friend.model';
+import { LoadingService } from '../../services/loading/loading.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-profile',
@@ -51,7 +53,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private friendService = inject(FriendService);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
+  private loadingService = inject(LoadingService);
   private subs = new Subscription();
+  private toastr = inject(ToastrService);
 
   ngOnInit(): void {
     // No ejecutar en SSR
@@ -59,6 +63,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.loading = false;
       return;
     }
+
+    // Cachear amigos al cargar el componente
+    this.subs.add(
+      this.friendService.cacheFriends().subscribe()
+    );
+    this.loadingService.show();
 
     this.subs.add(
       this.route.paramMap
@@ -82,6 +92,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 console.error('Error al cargar perfil:', err);
                 this.errorMsg = 'No se pudo cargar el perfil.';
                 this.loading = false;
+                this.loadingService.hide();
                 return of<Profile | null>(null);
               })
             )
@@ -108,6 +119,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
           }
           this.loading = false;
+          this.loadingService.hide();
         })
     );
   }
@@ -123,15 +135,40 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   addFriend(): void {
     if (!this.user) return;
-    this.friendService.add(this.user.uid).subscribe(() => {
-      this.isFriend = true;
+
+    this.authService.ready$.pipe(
+      filter(r => r), first()
+    ).subscribe(() => {
+      const targetUid = this.user.uid ?? (this.user as any).id;
+      if (!targetUid) { 
+        this.toastr.error('No se pudo obtener el ID del usuario.', 'Error');
+        return;
+      }
+
+      this.friendService.add(targetUid).subscribe({
+        next: () => { 
+          this.isFriend = true; 
+          this.toastr.success('Solicitud de amistad enviada', 'Éxito');
+        },
+        error: () => {
+          this.toastr.error('No se pudo enviar la solicitud de amistad.', 'Error');
+        }
+      });
     });
   }
 
   removeFriend(): void {
     if (!this.user) return;
-    this.friendService.remove(this.user.uid).subscribe(() => {
-      this.isFriend = false;
+    if (!confirm('¿Estás seguro de que quieres eliminar a este amigo?')) return;
+
+    this.friendService.remove(this.user.uid).subscribe({
+      next: () => {
+        this.isFriend = false;
+        this.toastr.success('Amigo eliminado correctamente', 'Éxito');
+      },
+      error: () => {
+        this.toastr.error('No se pudo eliminar al amigo.', 'Error');
+      }
     });
   }
 
@@ -139,7 +176,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.profileFields = [
       { label: 'Nombre completo', value: this.user.fullName },
       { label: 'Correo electrónico', value: this.user.email },
-      { label: 'Teléfono', value: this.user.phone? this.user.phone : 'No disponible' },
+      { label: 'Teléfono', value: this.user.phone ? this.user.phone : 'No disponible' },
       { label: 'Tipo de usuario', value: this.user.role }
     ];
   }
