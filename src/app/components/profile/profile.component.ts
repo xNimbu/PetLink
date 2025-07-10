@@ -49,7 +49,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isFriend = false;
 
   private profileService = inject(ProfileService);
-  private authService = inject(AuthService);
+  public auth = inject(AuthService);
   private friendService = inject(FriendService);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
@@ -74,7 +74,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.route.paramMap
         .pipe(
           switchMap(params =>
-            this.authService.ready$.pipe(
+            this.auth.ready$.pipe(
               filter(r => r),
               first(),
               switchMap(() => {
@@ -101,14 +101,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
         .subscribe(profile => {
           if (!profile) return;
           this.user = profile;
-          this.isOwnProfile = profile.uid === this.authService.uid;
+          this.isOwnProfile = profile.uid === this.auth.uid;
           this.buildProfileFields();
           this.pets = profile.pets ?? [];
           this.petPhotos = (profile.posts ?? [])
             .filter(p => !!p.photoURL)
             .map(p => p.photoURL!);
           this.friends = profile.friends ?? [];
-          if (!this.isOwnProfile && this.authService.isLoggedIn) {
+          if (!this.isOwnProfile && this.auth.isLoggedIn) {
             this.friendService.list().subscribe({
               next: resp => {
                 this.isFriend = resp.friends.some(f => f.uid === profile.uid);
@@ -129,14 +129,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.authService.logout();
+    this.auth.logout();
     window.location.href = '/login';
   }
 
   addFriend(): void {
     if (!this.user) return;
 
-    this.authService.ready$.pipe(
+    this.auth.ready$.pipe(
       filter(r => r), first()
     ).subscribe(() => {
       const targetUid = this.user.uid ?? (this.user as any).id;

@@ -39,7 +39,7 @@
          </span>
 
         <!-- Botones de acción (solo si NO es tu propio perfil) -->
-        <div class="ms-auto mt-3 mt-md-0" *ngIf="!isOwnProfile">
+        <div class="ms-auto mt-3 mt-md-0" *ngIf="auth.isLoggedIn && !isOwnProfile">
 
           <!-- Botones de agregar/ eliminar amigo -->
           <button
