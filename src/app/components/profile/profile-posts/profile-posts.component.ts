@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { first, switchMap } from 'rxjs/operators';
 import { PostsComponent } from '../../home/posts/posts.component';
-import { ProfileService } from '../../services/profile/profile.service';
-import { Post } from '../../models';
-import { Profile } from '../../models/profile/profile.model';
+import { ProfileService } from '../../../services/profile/profile.service';
+import { Post } from '../../../models';
+import { Profile } from '../../../models/profile/profile.model';
 
 @Component({
   selector: 'app-profile-posts',
