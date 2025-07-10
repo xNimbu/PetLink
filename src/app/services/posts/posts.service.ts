@@ -23,17 +23,21 @@ export class PostsService {
     return this.http
       .get<{ posts: Post[] }>(`${this.base}/`, this.auth.getAuthHeaders())
       .pipe(
-        map(res => res.posts.map(raw => ({
-          id: raw.id,
-          content: raw.content,
-          photoURL: raw.photoURL,
-          timestamp: raw.timestamp,
-          pet_id: raw.pet_id,
-          petName: raw.petName ?? raw.pet_name,
-          comments: raw.comments,
-          likes: raw.likes,
-          likesCount: raw.likesCount
-        })))
+        map(res => res.posts.map(raw => {
+          const petName = raw.petName ?? raw.pet_name ??
+            raw.owner?.pets?.find((p: any) => p.id === raw.pet_id)?.name;
+          return {
+            id: raw.id,
+            content: raw.content,
+            photoURL: raw.photoURL,
+            timestamp: raw.timestamp,
+            pet_id: raw.pet_id,
+            petName,
+            comments: raw.comments,
+            likes: raw.likes,
+            likesCount: raw.likesCount
+          } as Post;
+        }))
       );
   }
 
@@ -42,17 +46,21 @@ export class PostsService {
     return this.http
       .get<{ posts: Post[] }>(`${this.base}/user/${uid}/`, this.auth.getAuthHeaders())
       .pipe(
-        map(res => res.posts.map(raw => ({
-          id: raw.id,
-          content: raw.content,
-          photoURL: raw.photoURL,
-          timestamp: raw.timestamp,
-          pet_id: raw.pet_id,
-          petName: raw.petName ?? raw.pet_name,
-          comments: raw.comments,
-          likes: raw.likes,
-          likesCount: raw.likesCount
-        })))
+        map(res => res.posts.map(raw => {
+          const petName = raw.petName ?? raw.pet_name ??
+            raw.owner?.pets?.find((p: any) => p.id === raw.pet_id)?.name;
+          return {
+            id: raw.id,
+            content: raw.content,
+            photoURL: raw.photoURL,
+            timestamp: raw.timestamp,
+            pet_id: raw.pet_id,
+            petName,
+            comments: raw.comments,
+            likes: raw.likes,
+            likesCount: raw.likesCount
+          } as Post;
+        }))
       );
   }
 
