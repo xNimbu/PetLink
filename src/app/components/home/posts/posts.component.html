@@ -99,25 +99,28 @@
               <div class="comment-meta mt-1">
                 <small class="text-muted">{{ c.timestamp | date:'short' }}</small>
 
-                <ng-container *ngIf="!editMode[c.id]; else editTpl">
-                  <button class="btn btn-link btn-sm ms-2" (click)="enableEdit(c.id, c.message)">
-                    Editar
-                  </button>
-                  <button class="btn btn-link btn-sm text-danger" (click)="deleteComment(post.id, c.id)">
-                    Eliminar
-                  </button>
+                <ng-container *ngIf="viewerUid === c.userId">
+                  <ng-container *ngIf="!editMode[c.id]; else editTpl">
+                    <button class="btn btn-link btn-sm ms-2" (click)="enableEdit(post.id, c.id, c.message)">
+                      Editar
+                    </button>
+                    <button class="btn btn-link btn-sm text-danger" (click)="deleteComment(post.id, c.id)">
+                      Eliminar
+                    </button>
+                  </ng-container>
                 </ng-container>
 
-                <!-- Template de edición -->
                 <ng-template #editTpl>
-                  <textarea [(ngModel)]="editCommentText[c.id]" name="edit-{{c.id}}" rows="2"
-                    class="form-control mt-2"></textarea>
-                  <button class="btn btn-link btn-sm mt-1" (click)="saveEdit(post.id, c.id)">
-                    Guardar
-                  </button>
-                  <button class="btn btn-link btn-sm mt-1" (click)="cancelEdit(c.id)">
-                    Cancelar
-                  </button>
+                  <ng-container *ngIf="viewerUid === c.userId">
+                    <textarea [(ngModel)]="editCommentText[c.id]" name="edit-{{c.id}}" rows="2"
+                      class="form-control mt-2"></textarea>
+                    <button class="btn btn-link btn-sm mt-1" (click)="saveEdit(post.id, c.id)">
+                      Guardar
+                    </button>
+                    <button class="btn btn-link btn-sm mt-1" (click)="cancelEdit(c.id)">
+                      Cancelar
+                    </button>
+                  </ng-container>
                 </ng-template>
               </div>
             </div>

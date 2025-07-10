@@ -307,7 +307,11 @@ export class PostsComponent implements OnInit, OnChanges {
   }
 
   /** Entra en modo edición para un comentario */
-  public enableEdit(commentId: string, currentText: string): void {
+  public enableEdit(postId: string, commentId: string, currentText: string): void {
+    const post = this.posts.find(p => p.id === postId);
+    const comment = post?.comments?.find(c => c.id === commentId);
+    if (!comment || comment.userId !== this.viewerUid) return;
+
     this.editMode[commentId] = true;
     this.editCommentText[commentId] = currentText;
   }
@@ -322,6 +326,10 @@ export class PostsComponent implements OnInit, OnChanges {
   public saveEdit(postId: string, commentId: string): void {
     const newMsg = (this.editCommentText[commentId] || '').trim();
     if (!newMsg) return;
+
+    const post = this.posts.find(p => p.id === postId);
+    const comment = post?.comments?.find(c => c.id === commentId);
+    if (!comment || comment.userId !== this.viewerUid) return;
 
     this.commentService.updateComment(postId, commentId, newMsg).subscribe({
       next: () => {
@@ -340,6 +348,9 @@ export class PostsComponent implements OnInit, OnChanges {
 
   /** Elimina un comentario */
   public deleteComment(postId: string, commentId: string): void {
+    const post = this.posts.find(p => p.id === postId);
+    const comment = post?.comments?.find(c => c.id === commentId);
+    if (!comment || comment.userId !== this.viewerUid) return;
     if (!confirm('¿Eliminar este comentario?')) return;
 
     this.commentService.deleteComment(postId, commentId).subscribe({

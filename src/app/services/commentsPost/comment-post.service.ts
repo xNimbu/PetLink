@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 import { map, Observable } from 'rxjs';
 import { AddCommentResponse, CommentsResponse, Comment } from '../../models/folderComments/comment.model';
@@ -21,15 +21,14 @@ private baseUrl = `${environment.backendUrl}/posts`;
     const url = `${this.baseUrl}/${postId}/comments/`;
     console.log(url)
     return this.http
-      .get<CommentsResponse>(url, { headers: this.buildHeaders() })
+      .get<CommentsResponse>(url, this.auth.getAuthHeaders())
       .pipe(map(res => res.comments)); // Cambia 'comments' si tu API usa otro nombre
   }
 
   // POST que recibe sólo { mensaje, id }
   addComment(postId: string, message: string): Observable<AddCommentResponse> {
     const url = `${this.baseUrl}/${postId}/comments/`;
-    const headers = this.buildHeaders();
-    return this.http.post<AddCommentResponse>(url, { message }, { headers });
+    return this.http.post<AddCommentResponse>(url, { message }, this.auth.getAuthHeaders());
   }
 
 /** Actualiza un comentario existente (PUT) */
@@ -42,7 +41,7 @@ private baseUrl = `${environment.backendUrl}/posts`;
     return this.http.put<{ mensaje: string }>(
       url,
       { message },
-      { headers: this.buildHeaders() }
+      this.auth.getAuthHeaders()
     );
   }
 
@@ -54,15 +53,8 @@ private baseUrl = `${environment.backendUrl}/posts`;
     const url = `${this.baseUrl}/${postId}/comments/${commentId}/`;
     return this.http.delete<{ mensaje: string }>(
       url,
-      { headers: this.buildHeaders() }
+      this.auth.getAuthHeaders()
     );
   }
 
-  private buildHeaders(): HttpHeaders {
-    const token = this.auth.getIdToken();
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
 }
