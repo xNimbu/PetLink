@@ -1,70 +1,40 @@
-<div class="container py-4">
+<div class="container py-4 mt-5">
   <h2 class="mb-3">Crear Perfil de Servicio</h2>
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <div class="mb-3">
       <label class="form-label">Correo electrónico</label>
-      <input
-        type="email"
-        class="form-control"
-        formControlName="businessEmail"
-      />
-      <div
-        class="invalid-feedback"
-        *ngIf="
+      <input type="email" class="form-control" formControlName="businessEmail" />
+      <div class="invalid-feedback" *ngIf="
           form.get('businessEmail')?.touched &&
           form.get('businessEmail')?.invalid
-        "
-      >
+        ">
         Email requerido válido
       </div>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Contraseña temporal</label>
-      <input
-        type="password"
-        class="form-control"
-        formControlName="password"
-      />
+      <input type="password" class="form-control" formControlName="password" />
     </div>
 
     <div class="mb-3">
       <label class="form-label">Razón social</label>
-      <input
-        type="text"
-        class="form-control"
-        formControlName="businessName"
-      />
+      <input type="text" class="form-control" formControlName="businessName" />
     </div>
 
     <!-- Servicios ofrecidos -->
     <div formArrayName="services" class="mb-3">
       <label class="form-label">Servicios ofrecidos</label>
-      <div
-        *ngFor="let _ of servicesArray.controls; let i = index"
-        class="input-group mb-2"
-      >
+      <div *ngFor="let _ of servicesArray.controls; let i = index" class="input-group mb-2">
         <!-- Ahora usamos formControlName en lugar de [formControl] -->
-        <input
-          type="text"
-          class="form-control"
-          [formControlName]="i"
-        />
-        <button
-          class="btn btn-outline-danger"
-          type="button"
-          (click)="removeServiceField(i)"
-          *ngIf="servicesArray.length > 1"
-        >
+        <input type="text" class="form-control" [formControlName]="i" />
+        <button class="btn btn-outline-danger" type="button" (click)="removeServiceField(i)"
+          *ngIf="servicesArray.length > 1">
           &times;
         </button>
       </div>
-      <button
-        class="btn btn-sm btn-outline-primary"
-        type="button"
-        (click)="addServiceField()"
-      >
+      <button class="btn btn-sm btn-outline-success" type="button" (click)="addServiceField()">
         Agregar servicio
       </button>
     </div>
@@ -72,57 +42,26 @@
     <!-- Información de contacto -->
     <div formGroupName="contact" class="mb-3">
       <label class="form-label">Información de contacto</label>
-      <input
-        type="text"
-        class="form-control mb-2"
-        placeholder="Teléfono"
-        formControlName="phone"
-      />
-      <input
-        type="email"
-        class="form-control mb-2"
-        placeholder="Email"
-        formControlName="email"
-      />
-      <input
-        type="text"
-        class="form-control mb-2"
-        placeholder="Sitio web"
-        formControlName="website"
-      />
+      <input type="text" class="form-control mb-2" placeholder="Teléfono" formControlName="phone" />
+      <input type="email" class="form-control mb-2" placeholder="Email" formControlName="email" />
+      <input type="text" class="form-control mb-2" placeholder="Sitio web" formControlName="website" />
 
       <!-- Redes sociales (FormArray) -->
       <div formArrayName="social" class="mb-2">
-        <div
-          *ngFor="let _ of socialArray.controls; let j = index"
-          class="input-group mb-1"
-        >
+        <div *ngFor="let _ of socialArray.controls; let j = index" class="input-group mb-1">
           <!-- Y aquí también usamos formControlName con el índice -->
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Red social"
-            [formControlName]="j"
-          />
-          <button
-            class="btn btn-outline-danger"
-            type="button"
-            (click)="removeSocialField(j)"
-          >
+          <input type="text" class="form-control" placeholder="Red social" [formControlName]="j" />
+          <button class="btn btn-outline-danger" type="button" (click)="removeSocialField(j)">
             &times;
           </button>
         </div>
-        <button
-          class="btn btn-sm btn-outline-primary"
-          type="button"
-          (click)="addSocialField()"
-        >
+        <button class="btn btn-sm btn-outline-success" type="button" (click)="addSocialField()">
           Agregar red social
         </button>
       </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Crear</button>
+    <button type="submit" class="btn btn-success">Crear</button>
   </form>
 
   <div *ngIf="success" class="alert alert-success mt-3">

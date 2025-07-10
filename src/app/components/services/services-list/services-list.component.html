@@ -1,9 +1,7 @@
-<div class="container py-4">
-  <h2 class="mb-3">Servicios</h2>
-
+<div class="container py-5 mt-5">
   <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="mb-3 d-flex">
     <input type="text" class="form-control me-2" placeholder="Buscar" formControlName="q" />
-    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+    <button class="btn btn-outline-success" type="submit">Buscar</button>
   </form>
 
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
@@ -20,7 +18,7 @@
               {{ item }}<span *ngIf="i < s.services.length-1">, </span>
             </span>
           </p>
-          <button *ngIf="auth.isLoggedIn" class="btn btn-primary" (click)="openContact(s)">Contactar</button>
+          <button *ngIf="auth.isLoggedIn" class="btn btn-success" (click)="openContact(s)">Contactar</button>
         </div>
       </div>
     </div>

@@ -65,7 +65,7 @@ export const routes: Routes = [
     path: 'services',
     loadComponent: () => import('./components/services/services-list/services-list.component').then(m => m.ServicesListComponent)
   },
-   {
+  {
     path: 'admin/create-service',
     loadComponent: () =>
       import(
@@ -74,7 +74,7 @@ export const routes: Routes = [
     canActivate: [RoleGuard],                   // ← AÑADE RoleGuard
     data: { role: ['admin'] }                             // ← DEFINE EL ROL
   },
-  
+
   // Catch-all: redirige a la raíz (que a su vez redirige segun sesión)
   { path: '**', redirectTo: '' }
 ];
