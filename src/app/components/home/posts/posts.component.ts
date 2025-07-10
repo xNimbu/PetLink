@@ -25,6 +25,10 @@ export class PostsComponent implements OnInit, OnChanges {
 
   /** UID del perfil del cual mostrar los posts. Si es null se usan los del usuario actual */
   @Input() uid: string | null = null;
+  /** Posts precargados a mostrar en lugar de consultarlos al backend */
+  @Input() preloadedPosts: Post[] | null = null;
+  /** Perfil dueño de los posts precargados */
+  @Input() postOwner: Profile | null = null;
   /** Cuando es true se muestran posts del usuario y sus amigos */
   @Input() friendsFeed = false;
 
@@ -68,9 +72,20 @@ export class PostsComponent implements OnInit, OnChanges {
       this.viewerUid = p.uid;
       this.viewerUsername = p.username;
       this.user = p; // cachear para usarlo en el feed si es necesario
-      this.initFeed();
+      if (this.preloadedPosts) {
+        this.isOwnProfile = this.postOwner ? this.postOwner.uid === this.viewerUid : true;
+        const owner = this.postOwner ?? p;
+        this.populatePosts(this.preloadedPosts, owner);
+      } else {
+        this.initFeed();
+      }
     }).catch(() => {
-      this.initFeed();
+      if (this.preloadedPosts) {
+        this.isOwnProfile = this.postOwner ? this.postOwner.uid === this.authService.uid : true;
+        this.populatePosts(this.preloadedPosts, this.postOwner);
+      } else {
+        this.initFeed();
+      }
     });
   }
 
@@ -80,8 +95,15 @@ export class PostsComponent implements OnInit, OnChanges {
       this.subscriptions = new Subscription();
       this.posts = [];
       this.likedPostIds.clear();
-      if (isPlatformBrowser(this.platformId)) {
+      if (isPlatformBrowser(this.platformId) && !this.preloadedPosts) {
         this.initFeed();
+      }
+    }
+    if (changes['preloadedPosts'] && !changes['preloadedPosts'].firstChange) {
+      const owner = this.postOwner || this.user;
+      if (this.preloadedPosts) {
+        this.isOwnProfile = owner ? owner.uid === this.viewerUid : true;
+        this.populatePosts(this.preloadedPosts, owner);
       }
     }
   }
