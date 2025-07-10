@@ -14,7 +14,7 @@
           <div>
             <!-- Nombre usuario + mascota -->
             <strong>{{ post.username || user.fullName }}</strong>
-            <!-- ▼ sólo si hay mascota, mostramos imagen + "con NOMBRE" -->
+            <!-- ▼ Mostrar nombre de la mascota si el post tiene mascota -->
             <ng-container *ngIf="post.pet_id">
               <span class="d-inline-flex align-items-center ms-2">
                 <small class="text-muted ms-1">con {{ post.petName }}</small>
