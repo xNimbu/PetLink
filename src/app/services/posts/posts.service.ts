@@ -29,6 +29,7 @@ export class PostsService {
           photoURL: raw.photoURL,
           timestamp: raw.timestamp,
           pet_id: raw.pet_id,
+          petName: raw.petName ?? raw.pet_name,
           comments: raw.comments,
           likes: raw.likes,
           likesCount: raw.likesCount
@@ -47,6 +48,7 @@ export class PostsService {
           photoURL: raw.photoURL,
           timestamp: raw.timestamp,
           pet_id: raw.pet_id,
+          petName: raw.petName ?? raw.pet_name,
           comments: raw.comments,
           likes: raw.likes,
           likesCount: raw.likesCount
@@ -60,18 +62,23 @@ export class PostsService {
     return this.http
       .get<{ posts: any[] }>(url, this.auth.getAuthHeaders())
       .pipe(
-        map(res => res.posts.map(raw => ({
-          id: raw.id,
-          content: raw.content,
-          photoURL: raw.photoURL,
-          timestamp: raw.timestamp,
-          pet_id: raw.pet_id,
-          comments: raw.comments,
-          likes: raw.likes,
-          likesCount: raw.likesCount,
-          username: raw.owner?.username,
-          userAvatar: raw.owner?.avatar
-        } as Post)))
+        map(res => res.posts.map(raw => {
+          const petName = raw.petName ?? raw.pet_name ??
+            raw.owner?.pets?.find((p: any) => p.id === raw.pet_id)?.name;
+          return {
+            id: raw.id,
+            content: raw.content,
+            photoURL: raw.photoURL,
+            timestamp: raw.timestamp,
+            pet_id: raw.pet_id,
+            petName,
+            comments: raw.comments,
+            likes: raw.likes,
+            likesCount: raw.likesCount,
+            username: raw.owner?.username,
+            userAvatar: raw.owner?.avatar
+          } as Post;
+        }))
       );
   }
 
