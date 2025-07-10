@@ -24,13 +24,13 @@ export class ServicesApiService {
       social?: string[];
     };
   }): Observable<ServiceProfile> {
-    const url = `${this.baseUrl}/api/admin/create_service_profile/`;
+    const url = `${this.baseUrl}/admin/create_service_profile/`;
     return this.http.post<ServiceProfile>(url, data, this.auth.jsonOptions());
   }
 
   /** Lista perfiles de servicio p\u00fablicos */
   listServices(q?: string): Observable<ServiceProfile[]> {
-    let url = `${this.baseUrl}/api/services_list/`;
+    let url = `${this.baseUrl}/services_list/`;
     if (q) {
       url += `?q=${encodeURIComponent(q)}`;
     }
@@ -39,7 +39,7 @@ export class ServicesApiService {
 
   /** Env\u00eda un mensaje a un servicio */
   contactService(serviceUid: string, message: string): Observable<any> {
-    const url = `${this.baseUrl}/api/contact_service/`;
+    const url = `${this.baseUrl}/contact_service/`;
     return this.http.post(url, { serviceUid, message }, this.auth.jsonOptions());
   }
 }

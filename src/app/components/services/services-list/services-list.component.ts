@@ -18,7 +18,7 @@ export class ServicesListComponent implements OnInit {
   private api = inject(ServicesApiService);
   private fb = inject(FormBuilder);
   private modal = inject(NgbModal);
-  private auth = inject(AuthService);
+  public auth = inject(AuthService);
 
   searchForm = this.fb.group({ q: [''] });
   services: ServiceProfile[] = [];

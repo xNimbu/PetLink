@@ -14,13 +14,15 @@ import { ServiceProfile } from '../../../models';
 export class ContactServiceComponent {
   @Input() service!: ServiceProfile;
 
-  form = this.fb.group({
-    message: ['', Validators.required]
-  });
+  form: ReturnType<FormBuilder['group']>;
 
   sending = false;
 
-  constructor(public activeModal: NgbActiveModal, private fb: FormBuilder, private api: ServicesApiService) {}
+  constructor(public activeModal: NgbActiveModal, private fb: FormBuilder, private api: ServicesApiService) {
+    this.form = this.fb.group({
+      message: ['', Validators.required]
+    });
+  }
 
   submit() {
     if (this.form.invalid || !this.service) {
