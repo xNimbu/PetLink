@@ -148,6 +148,10 @@ export class NavbarComponent {
     this.router.navigate(['/settings']);
   }
 
+    openServices(): void {
+    this.router.navigate(['/services']);
+  }
+
   openProfile(): void {
     this.profileService.getProfile()
       .then(profile => {
