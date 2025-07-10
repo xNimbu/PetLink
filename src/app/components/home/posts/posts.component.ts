@@ -95,7 +95,7 @@ export class PostsComponent implements OnInit, OnChanges {
       this.subscriptions = new Subscription();
       this.posts = [];
       this.likedPostIds.clear();
-      if (isPlatformBrowser(this.platformId)) {
+      if (isPlatformBrowser(this.platformId) && !this.preloadedPosts) {
         this.initFeed();
       }
     }
