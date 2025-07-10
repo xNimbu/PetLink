@@ -60,6 +60,15 @@ export const routes: Routes = [
     loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'services',
+    loadComponent: () => import('./components/services/services-list/services-list.component').then(m => m.ServicesListComponent)
+  },
+  {
+    path: 'admin/create-service',
+    loadComponent: () => import('./components/services/admin-create-service/admin-create-service.component').then(m => m.AdminCreateServiceComponent),
+    canActivate: [AuthGuard]
+  },
   // Catch-all: redirige a la raíz (que a su vez redirige segun sesión)
   { path: '**', redirectTo: '' }
 ];
