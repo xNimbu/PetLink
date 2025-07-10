@@ -99,19 +99,26 @@
               <div class="comment-meta mt-1">
                 <small class="text-muted">{{ c.timestamp | date:'short' }}</small>
 
-                <ng-container *ngIf="viewerUid === c.userId">
+                <ng-container *ngIf="isCommentOwner(c)">
                   <ng-container *ngIf="!editMode[c.id]; else editTpl">
-                    <button class="btn btn-link btn-sm ms-2" (click)="enableEdit(post.id, c.id, c.message)">
-                      Editar
-                    </button>
-                    <button class="btn btn-link btn-sm text-danger" (click)="deleteComment(post.id, c.id)">
-                      Eliminar
-                    </button>
+                    <div class="dropdown d-inline-block ms-2">
+                      <button class="btn btn-link btn-sm dropdown-toggle p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <button class="dropdown-item" (click)="enableEdit(post.id, c.id, c.message)">Editar</button>
+                        </li>
+                        <li>
+                          <button class="dropdown-item text-danger" (click)="deleteComment(post.id, c.id)">Eliminar</button>
+                        </li>
+                      </ul>
+                    </div>
                   </ng-container>
                 </ng-container>
 
                 <ng-template #editTpl>
-                  <ng-container *ngIf="viewerUid === c.userId">
+                  <ng-container *ngIf="isCommentOwner(c)">
                     <textarea [(ngModel)]="editCommentText[c.id]" name="edit-{{c.id}}" rows="2"
                       class="form-control mt-2"></textarea>
                     <button class="btn btn-link btn-sm mt-1" (click)="saveEdit(post.id, c.id)">

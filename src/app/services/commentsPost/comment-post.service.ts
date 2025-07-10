@@ -16,13 +16,24 @@ private baseUrl = `${environment.backendUrl}/posts`;
     private auth: AuthService
   ) {}
 
+  private mapComment(raw: any): Comment {
+    return {
+      id: raw.id,
+      userId: String(raw.userId ?? raw.uid ?? raw.owner?.uid ?? raw.user_id ?? ''),
+      username: raw.username ?? raw.owner?.username ?? '',
+      message: raw.message,
+      timestamp: raw.timestamp,
+      photoURL: raw.photoURL ?? raw.owner?.avatar ?? ''
+    } as Comment;
+  }
+
   // GET original, sin cambios
   getComments(postId: string): Observable<Comment[]> {
     const url = `${this.baseUrl}/${postId}/comments/`;
     console.log(url)
     return this.http
       .get<CommentsResponse>(url, this.auth.getAuthHeaders())
-      .pipe(map(res => res.comments)); // Cambia 'comments' si tu API usa otro nombre
+      .pipe(map(res => res.comments.map(c => this.mapComment(c))));
   }
 
   // POST que recibe sólo { mensaje, id }

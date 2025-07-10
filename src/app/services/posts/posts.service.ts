@@ -4,6 +4,7 @@ import { Observable, Subject, from, switchMap, tap, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { Post } from '../../models';
+import { Comment } from '../../models/folderComments/comment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +19,17 @@ export class PostsService {
     private auth: AuthService
   ) { }
 
+  private mapComment(raw: any): Comment {
+    return {
+      id: raw.id,
+      userId: String(raw.userId ?? raw.uid ?? raw.owner?.uid ?? raw.user_id ?? ''),
+      username: raw.username ?? raw.owner?.username ?? '',
+      message: raw.message,
+      timestamp: raw.timestamp,
+      photoURL: raw.photoURL ?? raw.owner?.avatar ?? ''
+    } as Comment;
+  }
+
   /** Obtiene y desenvuelve los posts del usuario */
   getUserPosts(): Observable<Post[]> {
     return this.http
@@ -29,7 +41,7 @@ export class PostsService {
           photoURL: raw.photoURL,
           timestamp: raw.timestamp,
           pet_id: raw.pet_id,
-          comments: raw.comments,
+          comments: (raw.comments ?? []).map(c => this.mapComment(c)),
           likes: raw.likes,
           likesCount: raw.likesCount
         })))
@@ -47,7 +59,7 @@ export class PostsService {
           photoURL: raw.photoURL,
           timestamp: raw.timestamp,
           pet_id: raw.pet_id,
-          comments: raw.comments,
+          comments: (raw.comments ?? []).map(c => this.mapComment(c)),
           likes: raw.likes,
           likesCount: raw.likesCount
         })))
@@ -66,7 +78,7 @@ export class PostsService {
           photoURL: raw.photoURL,
           timestamp: raw.timestamp,
           pet_id: raw.pet_id,
-          comments: raw.comments,
+          comments: (raw.comments ?? []).map(c => this.mapComment(c)),
           likes: raw.likes,
           likesCount: raw.likesCount,
           username: raw.owner?.username,

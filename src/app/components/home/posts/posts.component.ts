@@ -59,6 +59,12 @@ export class PostsComponent implements OnInit, OnChanges {
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
+  /** Devuelve true si el comentario pertenece al usuario actual */
+  public isCommentOwner(comment: any): boolean {
+    const ownerId = String(comment.userId ?? comment.uid ?? comment.owner?.uid ?? comment.user_id ?? '');
+    return ownerId === this.viewerUid;
+  }
+
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -310,7 +316,7 @@ export class PostsComponent implements OnInit, OnChanges {
   public enableEdit(postId: string, commentId: string, currentText: string): void {
     const post = this.posts.find(p => p.id === postId);
     const comment = post?.comments?.find(c => c.id === commentId);
-    if (!comment || comment.userId !== this.viewerUid) return;
+    if (!comment || !this.isCommentOwner(comment)) return;
 
     this.editMode[commentId] = true;
     this.editCommentText[commentId] = currentText;
@@ -329,7 +335,7 @@ export class PostsComponent implements OnInit, OnChanges {
 
     const post = this.posts.find(p => p.id === postId);
     const comment = post?.comments?.find(c => c.id === commentId);
-    if (!comment || comment.userId !== this.viewerUid) return;
+    if (!comment || !this.isCommentOwner(comment)) return;
 
     this.commentService.updateComment(postId, commentId, newMsg).subscribe({
       next: () => {
@@ -350,7 +356,7 @@ export class PostsComponent implements OnInit, OnChanges {
   public deleteComment(postId: string, commentId: string): void {
     const post = this.posts.find(p => p.id === postId);
     const comment = post?.comments?.find(c => c.id === commentId);
-    if (!comment || comment.userId !== this.viewerUid) return;
+    if (!comment || !this.isCommentOwner(comment)) return;
     if (!confirm('¿Eliminar este comentario?')) return;
 
     this.commentService.deleteComment(postId, commentId).subscribe({
