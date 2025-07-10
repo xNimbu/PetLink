@@ -1,11 +1,12 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
-import { AuthShellComponent }    from './auth-shell/auth-shell.component';
-import { RedirectGuard }         from './guards/redirect.guard';
-import { AuthGuard }             from './guards/auth.guard';
-import { LoginGuard }            from './guards/login.guard';
-import { LoginComponent }        from './auth-shell/login/login.component';
-import { RegisterComponent }     from './auth-shell/register/register.component';
+import { AuthShellComponent } from './auth-shell/auth-shell.component';
+import { RedirectGuard } from './guards/redirect.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { LoginGuard } from './guards/login.guard';
+import { RoleGuard } from './guards/role.guard';
+import { LoginComponent } from './auth-shell/login/login.component';
+import { RegisterComponent } from './auth-shell/register/register.component';
 
 export const routes: Routes = [
   // Ruta raíz: espera a cargar token y luego redirige
@@ -64,11 +65,16 @@ export const routes: Routes = [
     path: 'services',
     loadComponent: () => import('./components/services/services-list/services-list.component').then(m => m.ServicesListComponent)
   },
-  {
+   {
     path: 'admin/create-service',
-    loadComponent: () => import('./components/services/admin-create-service/admin-create-service.component').then(m => m.AdminCreateServiceComponent),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import(
+        './components/services/admin-create-service/admin-create-service.component'
+      ).then(m => m.AdminCreateServiceComponent),
+    canActivate: [RoleGuard],                   // ← AÑADE RoleGuard
+    data: { role: ['admin'] }                             // ← DEFINE EL ROL
   },
+  
   // Catch-all: redirige a la raíz (que a su vez redirige segun sesión)
   { path: '**', redirectTo: '' }
 ];
