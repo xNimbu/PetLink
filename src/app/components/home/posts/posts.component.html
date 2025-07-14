@@ -6,30 +6,25 @@
 
   <!-- Lista de posts -->
   <ng-container *ngIf="!loading && posts.length">
-    <div class="bg-white rounded-3 shadow-sm p-3 mb-3" *ngFor="let post of posts">
+    <div *ngFor="let post of posts" class="bg-white rounded-3 shadow-sm p-3 mb-3">
+      <!-- Encabezado -->
       <div class="d-flex align-items-center mb-2 justify-content-between">
         <div class="d-flex align-items-center">
           <img [src]="post.userAvatar || user.photoURL" class="rounded-circle me-2" width="40" height="40"
             alt="Avatar" />
           <div>
-            <!-- Nombre usuario + mascota -->
             <strong>{{ post.username || user.fullName }}</strong>
-            <!-- ▼ sólo si hay mascota, mostramos imagen + "con NOMBRE" -->
             <ng-container *ngIf="post.pet_id">
               <span class="d-inline-flex align-items-center ms-2">
                 <small class="text-muted ms-1">con {{ post.petName }}</small>
               </span>
             </ng-container>
-
             <br />
-
             <small class="text-muted">
-              {{ post.timestamp | date : "short" }}
+              {{ post.timestamp | date:'short' }}
             </small>
           </div>
         </div>
-
-        <!-- Menú de tres puntos -->
         <div class="dropdown" *ngIf="isOwnProfile">
           <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-three-dots fs-5"></i>
@@ -50,8 +45,8 @@
         <img [src]="post.photoURL" class="rounded w-100" />
       </div>
 
-      <!-- Botones de acción -->
-      <div class="d-flex justify-content-between mt-3 text-muted small">
+      <!-- Botones de acción juntos -->
+      <div class="d-flex align-items-center mt-3 text-muted small">
         <button class="btn btn-like" (click)="toggleLike(post.id)" [attr.aria-pressed]="isLiked(post.id)">
           <i class="me-1" [ngClass]="{
               'bi bi-heart-fill text-danger': isLiked(post.id),
@@ -59,7 +54,7 @@
             }"></i>
           Me gusta <span class="ms-1">{{ post.likesCount || 0 }}</span>
         </button>
-        <button type="button" class="btn btn-link btn-sm ms-3" (click)="toggleCommentForm(post.id)">
+        <button class="btn btn-like btn-sm ms-3" (click)="toggleCommentForm(post.id)">
           <i class="bi bi-chat-left-text me-1"></i>Comentar
         </button>
       </div>
@@ -67,13 +62,11 @@
       <!-- Formulario de comentario -->
       <div *ngIf="commentFormVisible[post.id]" class="mt-3 comment-form">
         <form (ngSubmit)="submitComment(post.id)" class="d-flex align-items-start">
-          <!-- Avatar del usuario actual -->
-          <img [src]="user.photoURL || 'assets/images/nophoto_avatar.jpg'" alt="Mi avatar" class="rounded-circle me-2" width="32" height="32" />
-
-          <textarea [(ngModel)]="newComment[post.id]" name="comment-{{post.id}}" rows="2"
+          <img [src]="user.photoURL || 'assets/images/nophoto_avatar.jpg'" alt="Mi avatar" class="rounded-circle me-2"
+            width="32" height="32" />
+          <textarea [(ngModel)]="newComment[post.id]" name="comment-{{ post.id }}" rows="2"
             class="form-control flex-grow-1" placeholder="Escribe un comentario..." required></textarea>
-
-          <button type="submit" class="btn btn-primary btn-sm ms-2">
+          <button type="submit" class="btn btn-success btn-sm ms-2">
             Publicar
           </button>
         </form>
@@ -84,42 +77,49 @@
         <h6 class="text-muted mb-3">Comentarios ({{ post.comments.length }})</h6>
 
         <ng-container *ngIf="post.comments.length; else noComments">
-          <div *ngFor="let c of post.comments" class="d-flex comment-item">
-            <!-- Avatar del autor -->
+          <div *ngFor="let c of post.comments" class="d-flex comment-item mb-3">
             <img [src]="c.photoURL" alt="{{ c.username }}" class="rounded-circle me-2" width="32" height="32" />
-
             <div class="flex-grow-1">
-              <!-- Burbuja de comentario -->
-              <div class="comment-bubble p-2">
-                <strong class="me-1">{{ c.username }}</strong>
-                <span *ngIf="!editMode[c.id]; else editTpl">{{ c.message }}</span>
-              </div>
-
-              <!-- Metadatos y acciones -->
-              <div class="comment-meta mt-1">
+              <!-- VISTA NORMAL -->
+              <ng-container *ngIf="!editMode[c.id]; else editTpl">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="comment-bubble p-2 flex-grow-1">
+                    <strong class="me-1">{{ c.username }}</strong>
+                    <span>{{ c.message }}</span>
+                  </div>
+                  <div class="dropdown ms-2">
+                    <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown"
+                      aria-expanded="false">
+                      <i class="bi bi-three-dots fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <button class="dropdown-item" (click)="enableEdit(c.id, c.message)">
+                          <i class="bi bi-pencil me-2"></i>Editar
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item text-danger" (click)="deleteComment(post.id, c.id)">
+                          <i class="bi bi-trash me-2"></i>Eliminar
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
                 <small class="text-muted">{{ c.timestamp | date:'short' }}</small>
+              </ng-container>
 
-                <ng-container *ngIf="!editMode[c.id]; else editTpl">
-                  <button class="btn btn-link btn-sm ms-2" (click)="enableEdit(c.id, c.message)">
-                    Editar
-                  </button>
-                  <button class="btn btn-link btn-sm text-danger" (click)="deleteComment(post.id, c.id)">
-                    Eliminar
-                  </button>
-                </ng-container>
-
-                <!-- Template de edición -->
-                <ng-template #editTpl>
-                  <textarea [(ngModel)]="editCommentText[c.id]" name="edit-{{c.id}}" rows="2"
-                    class="form-control mt-2"></textarea>
-                  <button class="btn btn-link btn-sm mt-1" (click)="saveEdit(post.id, c.id)">
-                    Guardar
-                  </button>
-                  <button class="btn btn-link btn-sm mt-1" (click)="cancelEdit(c.id)">
+              <!-- VISTA EDICIÓN -->
+              <ng-template #editTpl>
+                <form (ngSubmit)="saveEdit(post.id, c.id)" class="mt-2 w-100">
+                  <textarea [(ngModel)]="editCommentText[c.id]" name="edit-{{ c.id }}" rows="2"
+                    class="form-control mb-2" required></textarea>
+                  <button type="submit" class="btn btn-sm btn-success">Guardar</button>
+                  <button type="button" class="btn btn-sm btn-secondary ms-2" (click)="cancelEdit(c.id)">
                     Cancelar
                   </button>
-                </ng-template>
-              </div>
+                </form>
+              </ng-template>
             </div>
           </div>
         </ng-container>
@@ -130,6 +130,7 @@
       </div>
     </div>
   </ng-container>
+
   <!-- Sin posts -->
   <div *ngIf="!loading && !errorMsg && !posts.length" class="text-center text-muted my-5">
     Aún no hay publicaciones. ¡Sigue a otros usuarios o crea tu primer post!

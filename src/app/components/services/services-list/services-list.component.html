@@ -1,0 +1,26 @@
+<div class="container py-5 mt-5">
+  <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="mb-3 d-flex">
+    <input type="text" class="form-control me-2" placeholder="Buscar" formControlName="q" />
+    <button class="btn btn-outline-success" type="submit">Buscar</button>
+  </form>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="!loading && services.length === 0" class="alert alert-info">No hay servicios disponibles</div>
+
+  <div class="row" *ngIf="services.length">
+    <div class="col-md-4" *ngFor="let s of services">
+      <div class="card mb-3 h-100">
+        <img *ngIf="s.photoURL" [src]="s.photoURL" class="card-img-top" alt="foto" />
+        <div class="card-body">
+          <h5 class="card-title">{{ s.businessName }}</h5>
+          <p class="card-text">
+            <span *ngFor="let item of s.services; let i=index">
+              {{ item }}<span *ngIf="i < s.services.length-1">, </span>
+            </span>
+          </p>
+          <button *ngIf="auth.isLoggedIn" class="btn btn-success" (click)="openContact(s)">Contactar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
